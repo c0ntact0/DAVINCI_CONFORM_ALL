@@ -1,0 +1,12 @@
+- Novo script ConformAll.py tem as funções para MOG e SONY
+- Só são importados os OP-ATOM de vídeo (está a demorar perto de 5 minutos. Incluí um deltaT que retorna o tempo que levou a processar)
+- A importação dos OP-ATOM continua a ser feita quando se importa o AAF
+- Quando se faz o conform, tanto do MOG como da SONY, os clips que sofrem o replace são movidos para a pasta atual (pode ser onde está a timeline ou não).
+  Portanto não convém que a pasta atual, quando é feito o conform, seja a pasta stock. Fiz isto porque quando o conform é feito os clips mudam, mas se 
+  for importado um AAF novamente, os clips OP-ATOM que mudaram são importados outra vez, e no conform seguinte os clips AMA ficavam duplicados na pasta stock.
+  Assim temos mais controle sobre a substituição dos clips.
+- Experimentei com a tua sequência e parece-me que fez tudo menos os que já estavam offline.
+- Também posso implementar a possibilidade de exportar automáticamente a pasta stock depois da importação dos OP-ATOM, tipo backup.
+
+Experimenta.
+Qualquer coisa apita.
