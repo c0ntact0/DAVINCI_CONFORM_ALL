@@ -14,22 +14,35 @@ from multiprocessing import resource_tracker
 #sys.path.append('/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules')
 #import DaVinciResolveScript as dvr
 
+def print_error(*args,sep: str = " ", end: str = "\n"):
+    print('ERROR:','',end='')
+    print(*args,sep=sep,end=end)
+    
+   
+def print_warning(*args,sep: str = " ", end: str = "\n"):
+    print('WARNING:','',end='')
+    print(*args,sep=sep,end=end)
+    
+def print_info(*args,sep: str = " ", end: str = "\n"):
+    print('INFO:','',end='')
+    print(*args,sep=sep,end=end)
+
 #resolve = dvr.scriptapp("Resolve")
-print("Python version:",sys.version)
+print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.0.3"
+CONFORM_ALL_VERSION="2024.0.4"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
 STOCK_DRB="stock_" + RESOLVE_VERSION_SUFIX + ".drb"
-print("ConformAll version:",CONFORM_ALL_VERSION)
-print("DaVinci Resolve Version:",RESOLVE_VERSION_STRING)
+print_info("ConformAll version:",CONFORM_ALL_VERSION)
+print_info("DaVinci Resolve Version:",RESOLVE_VERSION_STRING)
 userPath = os.path.expanduser("~")
 if not os.path.exists(userPath):
-    print("User path does not exist!!!")
+    print_error("User path does not exist!!!")
     exit(1)
 else:
-    print("User HOME is:",userPath)
+    print_info("User HOME is:",userPath)
     
 settingsFile = "ConformAll.json"
 settingsPath = os.path.join(userPath,"Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Settings")
@@ -71,6 +84,8 @@ typeColor = {
 cancelCopyFiles = False
 drScriptsPath="/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts"
 copyFilesPath = os.path.join(drScriptsPath,"copy_files.py")
+
+
 
 
 def loadSettings():
@@ -212,14 +227,14 @@ def importIngestSettings(path:str,importToKey:str,importFromKey:str):
 
 
 def getAvidMedia(folderPaths : list):
-    print("Getting Media Files (Avid)")
+    print_info("Getting Media Files (Avid)")
     fileEndings = ["_0.MXF","V.MXF","_CC.MXF","_VFX.MXF",".pmxf"]
     avidFiles = []
     ts = time.time()
     for folderPath in folderPaths:
         isUME = os.path.basename(folderPath) == "UME"
         if not os.path.exists(folderPath):
-            print("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
+            print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
             continue
         for root, dirs, files in os.walk(folderPath):
             for name in files:
@@ -241,7 +256,7 @@ def getAvidMedia(folderPaths : list):
             
     #print(amaFiles)
     print()
-    print(len(avidFiles)," Avid MediaFiles found.")
+    print_info(len(avidFiles)," Avid MediaFiles found.")
     return importClips(avidFiles)
 
 def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
@@ -257,7 +272,7 @@ def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
     
     Return {"reelName":"filename",...}
     """
-    print("Getting Media Files (AMA)")
+    print_info("Getting Media Files (AMA)")
     mimes=["." + x.upper() for x in settingsJson.get('fileExtensions',[])]
     amaFiles = {}
     numFiles=0
@@ -265,7 +280,7 @@ def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
     fieldSep = uiValues[1] if "ama" in folderType else None
     fieldCount = uiValues[2] if "ama" in folderType else None
     if not os.path.exists(folderPath):
-        print("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
+        print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
         return amaFiles
     ts = time.time()
     for root, dirs, files in os.walk(folderPath):
@@ -290,7 +305,7 @@ def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
 
 
     print()                
-    print(numFiles,"files found in",folderPath,"...")
+    print_info(numFiles,"files found in",folderPath,"...")
         
     return amaFiles
 
@@ -351,15 +366,15 @@ def unlockBinFile(binFilePath: str):
         if hostName == lockDic['hostName']:
             os.remove(lockFile)
         else:
-            print("Can't unlock stock bin file! This machine is not the own the lock!")
+            print_error("Can't unlock stock bin file! This machine is not the own the lock!")
     else:
-        print("Stock bin lock does not exist!")
+        print_warning("Stock bin lock does not exist!")
             
 
 def importClips(files):
     global stockBinPath
     
-    print("Importing clips to stock...")
+    print_info("Importing clips to stock...")
     uiValues = getUIValues()
     localTs = datetime.datetime.now()
     currentFolder = mediaPool.GetCurrentFolder()
@@ -370,7 +385,7 @@ def importClips(files):
     mediaPool.SetCurrentFolder(mpRoot)
     createEmptryStock = True
     if uiValues[10] and isImportExportDrbPossible():
-        print("Trying to import stock folder")
+        print_info("Trying to import stock folder...")
         mediaPool.DeleteFolders([stock])
         if os.path.exists(stockBinPath):
 
@@ -378,24 +393,29 @@ def importClips(files):
                 if mediaPool.ImportFolderFromFile(stockBinPath):
                     stock = getMediaFolder("stock")
                     if stock:
-                        print("Stock folder imported...")
+                        print_info("Stock folder imported.")
                         createEmptryStock = False
                     else:
-                        print("Can not create the stock folder object!")
+                        print_error("Can not create the stock folder object!")
                 else:
-                    print("Failed to import stock folder!")
+                    print_error("Failed to import stock folder!")
             except:
-                 print("This DaVinci Resolve version can't import the bin folder.")
+                 print_error("This DaVinci Resolve version can't import the bin folder.")
         else:
-            print("Stock folder bin file does not exist!")
+            print_warning("Stock folder bin file does not exist!")
     else:
         if stock:
-            print("Stock bin already exists...")
+            print_info("Stock bin already exists...")
             createEmptryStock = False
                           
     if createEmptryStock:
-        print("Creating empty stock folder...")
-        stock = mediaPool.AddSubFolder(mpRoot,"stock")
+        accepted,_,_ = genericPopupDialog("Do you want to import all Avid media files? This may take a while.","Yes","No",haveRejectButton=True)
+        if accepted:
+            print_info("Creating empty stock folder...")
+            stock = mediaPool.AddSubFolder(mpRoot,"stock")
+        else:
+            print_error("Stock folder creation canceled.")
+            return stock
         
     currentClipsFileNames = []
     for clip in stock.GetClipList():
@@ -405,13 +425,13 @@ def importClips(files):
     clipsInMP = len(currentClipsFileNames)
     filesNumber = len(files)
     if filesNumber == 0:
-        print("The is no files to import!")
+        print_warning("There is no files to import!")
         return stock
     
     clipsToImport=filesNumber - clipsInMP
-    print(clipsInMP,"clips already in media pool..")
-    print(clipsToImport, "files to import...")
-    print("Preparing list of files to import.")
+    print_info(clipsInMP,"clips already in media pool..")
+    print_info(clipsToImport, "files to import...")
+    print_info("Preparing list of files to import.")
     #print(files[0] if len(files) > 0  else "None")
         
     files2Process=[]
@@ -433,12 +453,12 @@ def importClips(files):
     r_pointer=0
     importedClips=[]
     step=1000
-    print("Importing media (",step," files each step)...",sep="")
+    print_info("Importing media (",step," files each step)...",sep="")
     for l_pointer in range(0,clips2ImportCounter,step):
         r_pointer = l_pointer + step
         if r_pointer > clips2ImportCounter:
            r_pointer = clips2ImportCounter 
-        print("Importing from index ",l_pointer," to index ",r_pointer-1,".\t",clips2ImportCounter - l_pointer," files remaining...",sep="")
+        print_info("Importing from index ",l_pointer," to index ",r_pointer-1,".\t",clips2ImportCounter - l_pointer," files remaining...",sep="")
         bmd.wait(0.2)
         importedClips += mediaPool.ImportMedia(files2Process[l_pointer:r_pointer])
 
@@ -465,21 +485,21 @@ def importClips(files):
 
 
     if (uiValues[9] or isDrbTodayFirstExport()) and isImportExportDrbPossible():
-        print("Trying to export stock bin...")
+        print_info("Trying to export stock bin...")
         try:
             if stock.Export(stockBinPath):
-                print("Stock bin exported...")
+                print_info("Stock bin exported...")
             else:
-                print("Failed to export stock bin!")
+                print_error("Failed to export stock bin!")
         except:
-            print("This DaVinci Resolve version can't export the bin folder.")
+            print_error("This DaVinci Resolve version can't export the bin folder.")
         
     mediaPool.SetCurrentFolder(currentFolder)
     if not importedClips:
         return stock
-    print(len(importedClips),"clips imported of",clips2ImportCounter)   
+    print_info(len(importedClips),"clips imported of",clips2ImportCounter)   
     dt = datetime.datetime.now() - localTs
-    print("Processed in",str(dt))
+    print_info("Processed in",str(dt))
     return stock
 
 def getTimelineClips():
@@ -487,9 +507,9 @@ def getTimelineClips():
     clips = []
     currentTimeline = currentProject.GetCurrentTimeline()
     videoTracks = currentTimeline.GetTrackCount('video')
-    print('Video tracks in timeline:',videoTracks)
+    print_info('Video tracks in timeline:',videoTracks)
     for i in range(1,videoTracks+1):
-        print("Getting clips from track",i)
+        print_info("Getting clips from track",i)
         for clip in currentTimeline.GetItemListInTrack('video', i):
             clips.append(clip)
             
@@ -524,7 +544,7 @@ def getTimelineClipsMog(clipsList):
         
     Returns a dict as {"clipReel":(<media pool clip>,'MOG',<timelineClip>),....}
     """
-    print("Getting MOG Clips...")
+    print_info("Getting MOG Clips...")
     clipDict = {}
     numClips=0
     uiValues = getUIValues()
@@ -540,7 +560,7 @@ def getTimelineClipsMog(clipsList):
                 clipDict[clipReel] = (mpClip,'MOG',clip)
                 numClips+=1
     
-    print(numClips,"not corformed clips found in timeline...")        
+    print_info(numClips,"not corformed clips found in timeline...")        
     return clipDict if numClips > 0 else None
 
 def getTimelineClipsOthers(clipsList,clipType):
@@ -551,7 +571,7 @@ def getTimelineClipsOthers(clipsList,clipType):
         
     Returns a dict as {clipReel: (<media pool clip>,clipType,timelineClip),...}
     """
-    print("Getting " + clipType + " Clips...")
+    print_info("Getting " + clipType + " Clips...")
     clipDict = {}
     numClips=0
     for clip in clipsList:
@@ -568,7 +588,7 @@ def getTimelineClipsOthers(clipsList,clipType):
                 numClips+=1
             
     
-    print(numClips,"not corformed clips found in timeline...")        
+    print_info(numClips,"not corformed clips found in timeline...")        
     return clipDict if numClips > 0 else None
 
 def removeExtension(path):
@@ -608,7 +628,7 @@ def getTimelineCodecs():
     return codecs
 
 def replaceClips(timelineClips:dict,files:dict):
-    print("Conforming clips...")
+    print_info("Conforming clips...")
     currentFolder = getMediaFolder(currentTimeline.GetName())
     binFolder = getMediaFolder("media",parent = currentFolder)
     if not binFolder:
@@ -633,7 +653,7 @@ def replaceClips(timelineClips:dict,files:dict):
             if mpClip.ReplaceClip(file):
                 bmd.wait(0.1)
                 if proxyCodec == mpClip.GetClipProperty("Video Codec"):
-                    print("New and old files have de same codec.")
+                    print_warning("New and old files have de same codec.")
                     mpClip.ReplaceClip(proxyClipPath)
                     bmd.wait(0.1)
                     mpClip.SetClipProperty("Scene",timelineClipName)
@@ -648,9 +668,9 @@ def replaceClips(timelineClips:dict,files:dict):
 
                 clips2Move.append(mpClip)
                 
-                print("Clip",clipName,"replaced")
+                print_info("Clip",clipName,"replaced")
             else:
-                print("Error replacing",clipName,"with",file)
+                print_error("Error replacing",clipName,"with",file)
     
     
     mediaPool.MoveClips(clips2Move,binFolder)
@@ -666,7 +686,7 @@ def replaceClips(timelineClips:dict,files:dict):
     #    "useSizingInfo":True,"sourceClipsFolders":[binFolder, getMediaFolder("stock")]    
     #    }):
     #        print("Error reimporting the timeline. Confirm if the AAF file in the import AAF field matches the imported timeline. You can conform again when the AAF matches.")
-    print(str(counter)," clips conformed.")
+    print_info(str(counter)," clips conformed.")
 
 def insertReferences():
     global currentTimeline
@@ -686,18 +706,18 @@ def insertReferences():
             videoFile = None
     
     if audioFile:
-        print("Inserting reference audio...")
+        print_info("Inserting reference audio...")
         audioClip = mediaPool.ImportMedia([audioFile])[0]
         appendedClips = mediaPool.AppendToTimeline(audioClip)
         if len(appendedClips) == 0:
-            print("Failed to add reference audio!")
+            print_error("Failed to add reference audio!")
         else:
-            print("Reference audio added...")    
+            print_info("Reference audio added...")    
     else:
-        print("Reference audio file does not exist")
+        print_warning("Reference audio file does not exist")
         
     if videoFile:
-        print("Inserting reference video...")
+        print_info("Inserting reference video...")
         if currentTimeline.AddTrack('video'):
             trackCount = currentTimeline.GetTrackCount('video')
             videoClip = mediaPool.ImportMedia([videoFile])[0]
@@ -712,13 +732,13 @@ def insertReferences():
                 }
                 appendedClips = mediaPool.AppendToTimeline([clipDic])
             if len(appendedClips) == 0:
-                print("Failed to add reference video!")
+                print_error("Failed to add reference video!")
             else:
-                print("Reference video added...")
+                print_info("Reference video added...")
         else:
-            print("Failed to create video track!")
+            print_error("Failed to create video track!")
     else:
-        print("Reference video file does not exist")
+        print_warning("Reference video file does not exist")
         
     currentTimeline.SetCurrentTimecode(currentTimeline.GetStartTimecode())
     
@@ -833,9 +853,9 @@ def working(command:str="start"):
         resource_tracker.ensure_running()
         try:
             SharedMemory(name='ConformAllWorking').unlink()
-            print("Shared Memory removed")
+            print_warning("Shared Memory removed")
         except: 
-            print("Shared Memory does not exist")                       
+            print_warning("Shared Memory does not exist")                       
         finally:
             sl = ShareableList([False],name='ConformAllWorking')
         bmd.wait(0.1)
@@ -850,7 +870,7 @@ def working(command:str="start"):
 ##### EVENT HANDLERS #####
 def OnClose(ev):
     saveSetting(currentHouseProject)
-    print("Exit")
+    print_info("Exit")
     fu.ShowConsole(False)
     dispatcher.ExitLoop()
 
@@ -859,7 +879,7 @@ def BtConformMog(ev):
         return False
     if isNotTimelineSelected() or isOnStockFolder():
         return False
-    print("Processing MOG...")
+    print_info("Processing MOG...")
     buttonsEnabled(False)
     uiValues = getUIValues()
     mogPath = uiValues[0]
@@ -869,7 +889,7 @@ def BtConformMog(ev):
         mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
         replaceClips(timelineClipDict,mogDic)
     buttonsEnabled(True)
-    print("Finished MOG conforming...")
+    print_info("Finished MOG conforming...")
     return True
     
 def BtConformCameras(ev):
@@ -884,7 +904,7 @@ def BtConformCameras(ev):
         return False
     if isNotTimelineSelected() or isOnStockFolder():
         return False
-    print("Processing " + clipType + "...")
+    print_info("Processing " + clipType + "...")
     buttonsEnabled(False)
     timelineClips = getTimelineClips()
     clipDict = getTimelineClipsOthers(timelineClips,clipType)
@@ -895,13 +915,13 @@ def BtConformCameras(ev):
         replaceClips(clipDict,sonyDic)
     
     buttonsEnabled(True)
-    print("Finished",clipType,"conforming...")
+    print_info("Finished",clipType,"conforming...")
     return True
     
 def BtConformAll(ev):
     if not isEditPage():
         return
-    print("Conforming all media types...")
+    print_info("Conforming all media types...")
     if BtConformCameras({'who':'btConformSony'}):
         if BtConformCameras({'who':'btConformOthers'}):
             BtConformMog(None)
@@ -913,16 +933,16 @@ def otioTransform(path):
     currentTimeline.Export(otioPath,resolve.EXPORT_OTIO)
     
     timeline = otio.adapters.read_from_file(otioPath)
-    print("Reading timeline")
+    print_info("Reading timeline")
     if timeline:
         for clip in timeline.each_clip():
-            print('============================================================')
-            print(clip.name)
+            print_info('============================================================')
+            print_info(clip.name)
             for fx in clip.effects:
                 if fx.metadata:
                     if fx.metadata['Resolve_OTIO']['Effect Name'] == 'Retime and Scaling':
                         fx.metadata['Resolve_OTIO']['Enabled'] = False
-                        print(fx.metadata)
+                        print_info(fx.metadata)
                         
     aafFile,_ = os.path.splitext(path)    
     aafFile += "_otio.otio"      
@@ -960,13 +980,13 @@ def BtImportAAF(ev):
     
     path = values[4]
     if not os.path.exists(path):
-        print("AAF file does not exists!")
+        print_error("AAF file does not exists!")
         buttonsEnabled(True)
         unlockBinFile(stockBinPath)
         return
     timelineName = ".".join(os.path.basename(path).split(".")[0:-1])
     if timelineExists(timelineName):
-        print("The timeline",timelineName,"already exists!")
+        print_error("The timeline",timelineName,"already exists!")
         buttonsEnabled(True)
         unlockBinFile(stockBinPath)
         return
@@ -977,7 +997,7 @@ def BtImportAAF(ev):
 
         clips = stock.GetClipList()
         if len(clips) == 0:
-            print("There is no clips in stock folder!")
+            print_warning("There is no clips in stock folder!")
             if not autoImportSourceClipsIntoMediaPool:
                 autoImportSourceClipsIntoMediaPool,_,_ = genericPopupDialog("There is no clips in stock folder!\nDo you want link to source camera files?","Yes","No",haveRejectButton=True)
             if not autoImportSourceClipsIntoMediaPool:
@@ -985,7 +1005,7 @@ def BtImportAAF(ev):
                 unlockBinFile(stockBinPath)
                 return
         if not autoImportSourceClipsIntoMediaPool:
-            print("Stock folder have",len(clips),"clips.")
+            print_info("Stock folder have",len(clips),"clips.")
 
     binFolder = getMediaFolder(timelineName)
     if not binFolder:
@@ -993,13 +1013,13 @@ def BtImportAAF(ev):
         binFolder = mediaPool.AddSubFolder(mpRoot,timelineName)
     
     if not mediaPool.SetCurrentFolder(binFolder):
-        print("Can't select the bin folder")
+        print_error("Can't select the bin folder")
         buttonsEnabled(True)
         unlockBinFile(stockBinPath)
         return
     
     
-    print("Creating timeline",timelineName)
+    print_info("Creating timeline",timelineName)
     bmd.wait(2)
     timeline = mediaPool.CreateEmptyTimeline(timelineName)
     bmd.wait(2)
@@ -1013,10 +1033,10 @@ def BtImportAAF(ev):
     }
     if not autoImportSourceClipsIntoMediaPool:
         importDict["sourceClipsFolders"] = [stock]  
-    print("Importing AAF into timeline...")
+    print_info("Importing AAF into timeline...")
     if not timeline.ImportIntoTimeline(path,importDict):
-        print("Failed to import the timeline",timelineName)
-        print("Please confirm the timeline creation frame rate in the project settings.")
+        print_error("Failed to import the timeline",timelineName)
+        print_error("Please confirm the timeline creation frame rate in the project settings.")
     
     #timeline = mediaPool.ImportTimelineFromFile(path, {
     #    "timelineName":timelineName,
@@ -1027,7 +1047,7 @@ def BtImportAAF(ev):
     #    print("Failed to import the timeline",timelineName)
     else:
         if currentProject.SetCurrentTimeline(timeline):
-            print("Timeline created. Inserting references...")
+            print_info("Timeline created. Inserting references...")
             insertReferences()
             if autoImportSourceClipsIntoMediaPool:
                 changeClipsColorOnAutoImportSourceClipsIntoMediaPool()
@@ -1041,9 +1061,9 @@ def BtImportAAF(ev):
                     mediaPool.SetCurrentFolder(currentFolder)
                     
         else:
-            print("Failed to set ",timelineName," as the current timeline",timelineName)
+            print_error("Failed to set ",timelineName," as the current timeline",timelineName)
     
-    print("AAF import finished...")
+    print_info("AAF import finished...")
     buttonsEnabled(True)
     unlockBinFile(stockBinPath)
     
@@ -1054,7 +1074,7 @@ def ProjectChanged(ev):
     currentHouseProject = cbProjects.CurrentText
     loadSettings()
     getSettings(currentHouseProject)
-    print("Current project is",currentHouseProject)
+    print_info("Current project is",currentHouseProject)
     
     #TODO: ver isto melhor, não deviar ter que reconstruir a window
     win.Hide()
@@ -1066,9 +1086,9 @@ def DeleteProject(ev):
     global settingsJson
     
     if cbProjects.CurrentIndex == 0:
-        print("Default project can not be deleted!")
+        print_error("Default project can not be deleted!")
         return
-    print("Deleting project",currentHouseProject)
+    print_info("Deleting project",currentHouseProject)
     oldSettings = settings
     idx = cbProjects.CurrentIndex
     currentHouseProject = None
@@ -1081,7 +1101,7 @@ def AddProject(ev):
     newName = win.Find("txtNewProject").Text
     projects = getProjects()
     if newName in projects:
-        print("Project",newName,"already exist!")
+        print_error("Project",newName,"already exist!")
         return
     cbProjects.AddItem(newName)
     currentHouseProject = newName
@@ -1091,7 +1111,7 @@ def RenameProject(ev):
     newName = win.Find("txtNewProject").Text
     projects = getProjects()
     if newName in projects:
-        print("Project",newName,"already exist!")
+        print_error("Project",newName,"already exist!")
         return
     oldName = cbProjects.CurrentText
     cbProjects.ItemText[cbProjects.CurrentIndex] = newName
@@ -1117,9 +1137,9 @@ def OnCopyMedia(ev):
         resource_tracker.ensure_running()
         try:
             SharedMemory(name='ConformAllCopyMedia').unlink()
-            print("Shared Memory removed")
+            print_warning("Shared Memory removed")
         except: 
-            print("Shared Memory does not exist")                       
+            print_warning("Shared Memory does not exist")                       
         finally:
             sl = ShareableList([False,False,mediaPath,mediaFolderName,0],name='ConformAllCopyMedia')
         bmd.wait(0.1)
@@ -1137,7 +1157,7 @@ def OnCopyMedia(ev):
                 sl[0]=True
                 bt.Text = "Canceling..."
                 bt.Enabled = False
-                print(' Canceling...\n')
+                print_info(' Canceling...\n')
                 bmd.wait(0.5) # Wait to write in shm 
 
             bmd.wait(0.0001)
@@ -1150,12 +1170,12 @@ def OnCopyMedia(ev):
             currentProjectName = currentProject.GetName()
             pm.CloseProject(currentProject)
             currentProject = pm.LoadProject(currentProjectName)
-            print("Current DaVinci Resolve project:",currentProject.GetName())
+            print_info("Current DaVinci Resolve project:",currentProject.GetName())
             currentTimeline = currentProject.GetCurrentTimeline()
             mediaPool = currentProject.GetMediaPool()
         dt = datetime.datetime.now() - ts
-        print("Processed in",str(dt))
-        print('Finished copying files.')
+        print_info("Processed in",str(dt))
+        print_info('Finished copying files.')
         bt.Text = "Copy Media"
         bt.Events = {'Clicked':True}
         buttonsEnabled(True)
@@ -1181,11 +1201,11 @@ def OnDeleteMedia(ev):
                 if clip.ReplaceClip(proxy):
                     clip.UnlinkProxyMedia()
                     clip.SetClipColor("Blue")
-                    print('Deleting file',filePath)
+                    print_info('Deleting file',filePath)
                     os.remove(filePath)
                     clips2Move.append(clip)
         else:
-            print(filePath,'can not be deleted')
+            print_error(filePath,'can not be deleted')
             
     stock = getMediaFolder("stock")
     if stock:
@@ -1207,7 +1227,7 @@ def OnBrowse(ev):
         if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep):
             txt.Text = newPath
         else:
-            print('Wrong path')
+            print_error('Wrong path')
             errorPopupDialog(newPath + " is a wrong Path.\nThe path must be in the format <Volume>" + os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep)
             
     elif who == "btBrowseAAF":
@@ -1292,7 +1312,7 @@ def OnCodecsList(ev):
         addCodecsToList([codec],'codecs',treeCodecsConfig,['codecsProxy'])
 
     elif who in ['btRemoveCodec','btSendToProxy']:
-        print(who)
+        #print(who)
         tree = items['treeCodecs']
         haveSelecteds = False
         for it in tree.SelectedItems().values():
@@ -1789,7 +1809,7 @@ if __name__ == "__main__":
     dispatcher = bmd.UIDispatcher(ui)
 
     currentProject = pm.GetCurrentProject()
-    print("Current DaVinci Resolve project:",currentProject.GetName())
+    print_info("Current DaVinci Resolve project:",currentProject.GetName())
     #pprint(currentProject.GetSetting())
     currentTimeline = currentProject.GetCurrentTimeline()
     mediaPool = currentProject.GetMediaPool()

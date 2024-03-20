@@ -29,6 +29,10 @@ The settings file is created by the ConformAll.py script.
 
 ------------------------------------------------------------------------------------------------------
 * Versions
+2024.0.4
+- Console messages prefix (INFO, WARNING, ERROR)
+- When the import of the stock file fail,the user is asked if he want prossed with the import of the clips.
+
 2024.0.3
 - If "Export Stock Bin" it's not selected and is the first AAF import of the current day, is asked to the user if he wants to export the stock bin.
 - Clips that not have the "Clip Color" property empty are not included in the timeline clips dictionary for conforming.
