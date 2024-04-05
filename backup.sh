@@ -53,7 +53,7 @@ rsync -ruv "/Users/rui/Library/CloudStorage/OneDrive-GrupoMediaCapital/PLURAL_OF
 umount /Volumes/macSSD
 fi
 
-for i in 1 3 4
+for i in 1 2 3 4
 do
 echo "Copy to davinci0$i"
 open smb://admin:sEgUrOIT@davinci0$i/"Macintosh HD"

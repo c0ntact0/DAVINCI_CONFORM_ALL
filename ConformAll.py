@@ -1193,6 +1193,8 @@ def OnDeleteMedia(ev):
     mpClips = mediaFolder.GetClipList()
     copyMediaPath = getUIValues()[11]
     clips2Move=[]
+    deleteUnrelinked = False
+    deleteUnrelinkedAsked = False
     for clip in mpClips:
         filePath = clip.GetClipProperty('File Path')
         if filePath.startswith(copyMediaPath):
@@ -1204,6 +1206,19 @@ def OnDeleteMedia(ev):
                     print_info('Deleting file',filePath)
                     os.remove(filePath)
                     clips2Move.append(clip)
+                else:
+                    if not deleteUnrelinkedAsked:
+                        deleteUnrelinked,_,_ = genericPopupDialog("Some chips do not have an associated proxy and will be offline. Do you want to remove these files anyway?",
+                                                                  "Yes","No",haveRejectButton=True)
+                        deleteUnrelinkedAsked = True
+                    if deleteUnrelinked:
+                        print_info('Deleting file',filePath)
+                        os.remove(filePath)
+                    else:
+                        print_warning("Can not delete the file ", filePath,".",sep='')
+                        
+            else:
+                print_error(filePath,"does not exists!")
         else:
             print_error(filePath,'can not be deleted')
             

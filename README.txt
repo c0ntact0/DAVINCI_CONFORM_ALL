@@ -29,6 +29,9 @@ The settings file is created by the ConformAll.py script.
 
 ------------------------------------------------------------------------------------------------------
 * Versions
+2024.0.5
+- Bug solved: fail to delete files from edit storage if the clip does not have the proxy association.
+
 2024.0.4
 - Console messages prefix (INFO, WARNING, ERROR)
 - When the import of the stock file fail,the user is asked if he want prossed with the import of the clips.
