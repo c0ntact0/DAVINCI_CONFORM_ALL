@@ -13,9 +13,16 @@
 %PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts\Utility
 ```
 - Linux:
+
 ```
-/opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/Utility depending on installation)
-````
+/opt/resolve/Fusion/Scripts
+```
+or
+```
+/home/resolve/Fusion/Scripts/Utility
+```
+depending on installation.
+
  
 **Put the copy_files.py script in:**
 
@@ -28,9 +35,15 @@
 %PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts
 ```
 - Linux:
-````
-/opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/ depending on installation)
-````
+```
+/opt/resolve/Fusion/Scripts
+```
+or
+```
+/home/resolve/Fusion/Scripts/
+```
+depending on installation.
+
 
 **The settings file location:**
 
