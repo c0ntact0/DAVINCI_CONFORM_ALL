@@ -1,37 +1,60 @@
-* Install
 
-Put the ConformAll.py script in one of the following locations:
-    Mac OS X:
-      /Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Utility
-    Windows:
-     %PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts\Utility
-    Linux:
-      /opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/Utility depending on installation)
-    
-Put the copy_files.py script in:
-    Mac OS X:
-        /Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts
-    Windows:
-        %PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts
-    Linux:
-        /opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/ depending on installation)
 
-The settings file location:
-    Mac OS X:
-        /Users/<USER>/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Settings
-    Windows:
-        %APPDATA%\Roaming\Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Settings
-    Linux:
-        $HOME/.local/share/DaVinciResolve/Fusion/Scripts/Settings
+# Install
+
+**Put the ConformAll.py script in one of the following locations**:
+
+- Mac OS X:
+```
+/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Utility
+```
+- Windows:
+```
+%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts\Utility
+```
+- Linux:
+```
+/opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/Utility depending on installation)
+````
+ 
+**Put the copy_files.py script in:**
+
+- Mac OS X:
+```
+/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts
+```
+- Windows:
+```
+%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Fusion\Scripts
+```
+- Linux:
+````
+/opt/resolve/Fusion/Scripts  (or /home/resolve/Fusion/Scripts/ depending on installation)
+````
+
+**The settings file location:**
+
+- Mac OS X:
+```
+/Users/<USER>/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Settings
+```
+- Windows:
+```
+%APPDATA%\Roaming\Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Settings
+```
+- Linux:
+```
+$HOME/.local/share/DaVinciResolve/Fusion/Scripts/Settings
+```
   
 The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
-------------------------------------------------------------------------------------------------------
-* Versions
+# Versions
 2024.0.6
   - New blacklist_files.json is create in the Avid Path containing a list of files that the DR cannot import to the Media Pool. This avoids consecutives tries to import this files.
   - Try to import MOG files with the clip Reel Name (e.g. consolidation of MOG MPEG50 proxy files) if the clip that does not have the MOG filename template in the clipname.    
+
 2024.0.5
 - Bug solved: fail to delete files from edit storage if the clip does not have the proxy association.
 
