@@ -528,7 +528,7 @@ def createBlackListFiles(importedClips:list,files2Process:list,blacklist_par:lis
     for clip in importedClips:
         clipFilename = clip.GetClipProperty("File Path")
         if clipFilename in localFiles2Process:
-            localFiles2Process.remove(clip)
+            localFiles2Process.remove(clipFilename)
             
     for file in localFiles2Process:
         if file not in blacklist:
