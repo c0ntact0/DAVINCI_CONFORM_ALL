@@ -1,0 +1,9 @@
+
+from threading import Thread
+
+def threadTest(name):
+    print("Do it")
+    
+if __name__ == "__main__":
+    t = Thread(target=threadTest,args=(1,))
+    t.start()

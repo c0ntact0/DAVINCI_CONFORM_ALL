@@ -2,7 +2,7 @@ from multiprocessing import shared_memory
 from multiprocessing.shared_memory import ShareableList
 import os
 
-path = "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/test_sub.py"
+path = os.path.join(os.getcwd(),"test_sub.py")
 
 def OnClose(ev):
     dispatcher.ExitLoop()
@@ -38,17 +38,20 @@ def OnGo(ev):
         if finished:
             break
         if win.Find('btCancel').Down:
-            #shm.buf[0]=True
-            sl[0]=True
+            shm.buf[0]=True
+            shm.buf[0]=True
             print('Cancel')
             
         bmd.wait(0.1)
-    #shm.close()
-    #shm.unlink()
-    sl.shm.close()
-    sl.shm.unlink()
+    shm.close()
+    shm.unlink()
     print('Finished')
     win.Find('btGo').Enabled = True
+        
+def OnCancel(ev):
+    shm.buf[0]=True
+    print('OnCancel')
+    
     
 if __name__ == "__main__":
 

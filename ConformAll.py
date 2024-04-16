@@ -35,6 +35,7 @@ RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
 STOCK_DRB="stock_" + RESOLVE_VERSION_SUFIX + ".drb"
+BLACKLIST_FILES="blacklist_files.json"
 print_info("ConformAll version:",CONFORM_ALL_VERSION)
 print_info("DaVinci Resolve Version:",RESOLVE_VERSION_STRING)
 userPath = os.path.expanduser("~")
@@ -84,9 +85,6 @@ typeColor = {
 cancelCopyFiles = False
 drScriptsPath="/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts"
 copyFilesPath = os.path.join(drScriptsPath,"copy_files.py")
-
-
-
 
 def loadSettings():
     global currentHouseProject
@@ -432,14 +430,17 @@ def importClips(files):
     print_info(clipsInMP,"clips already in media pool..")
     print_info(clipsToImport, "files to import...")
     print_info("Preparing list of files to import.")
+    bmd.wait(0.2)
     #print(files[0] if len(files) > 0  else "None")
         
     files2Process=[]
+    blacklist = loadBlacklistFiles(os.path.join(getUIValues()[5],BLACKLIST_FILES))
     ts = time.time()
     for file in files:
         basename = os.path.basename(file)
         if not basename in currentClipsFileNames:
-            files2Process.append(file)
+            if file not in blacklist:
+                files2Process.append(file)
         now = time.time()
         if ts + 1. < now:
             print("",end=".")
@@ -464,6 +465,8 @@ def importClips(files):
 
     print()       
     mediaPool.RefreshFolders()
+    print_info("Creating blacklist...")
+    createBlackListFiles(importedClips,files2Process,blacklist)
     #if importedClips:
     #    importedClipsNumber = len(importedClips)
     #    print("Adding Reel Number to metadata...")
@@ -501,6 +504,51 @@ def importClips(files):
     dt = datetime.datetime.now() - localTs
     print_info("Processed in",str(dt))
     return stock
+
+def createBlackListFiles(importedClips:list,files2Process:list,blacklist_par:list=None):
+    """
+    Create a json file with a list of filenames that can not be imported to the media pool.
+    
+    Arguments:
+        importedClips: A list of imported MediaPoolItems.
+        files2Process: A list of filenames to import to the media pool.
+        blacklist_par: A list of already loaded existing blacklist
+        
+    Returns:
+        The blacklist.
+    """
+    localFiles2Process = files2Process.copy()
+    blacklist = blacklist_par
+    blackListFileName = os.path.join(getUIValues()[5],BLACKLIST_FILES)
+    if not blacklist:
+        blacklist = loadBlacklistFiles(blackListFileName)
+    
+    # remove processed files from localFiles2Process
+    # remaining files are the import errors
+    for clip in importedClips:
+        clipFilename = clip.GetClipProperty("File Path")
+        if clipFilename in localFiles2Process:
+            localFiles2Process.remove(clip)
+            
+    for file in localFiles2Process:
+        if file not in blacklist:
+            blacklist.append(file)
+            
+    blacklistJson = {
+        'files': blacklist
+    }    
+    with open(blackListFileName,'w') as f:
+        json.dump(blacklistJson,f)
+        
+    return blacklist
+        
+def loadBlacklistFiles(blackListFileName:str):
+    blacklist = []
+    if os.path.exists(blackListFileName):
+        with open(blackListFileName,'r') as f:
+            blacklistJson = json.load(f)
+            blacklist= blacklistJson.get('files',[])
+    return blacklist
 
 def getTimelineClips():
     global currentTimeline    
@@ -553,12 +601,22 @@ def getTimelineClipsMog(clipsList):
     for clip in clipsList:
         mpClip = clip.GetMediaPoolItem()
         if mpClip and len(mpClip.GetClipProperty("Clip Color")) == 0:
+            # Try to extract the reel name from the clipname
             clipName = mpClip.GetName()
             clipReel = extractReelName(clipName,fieldSep,fieldCount)
             #clipReel = mpClip.GetClipProperty("Reel Name")
             if clipReel:
+                print("From clipname:",clipReel)
                 clipDict[clipReel] = (mpClip,'MOG',clip)
                 numClips+=1
+            else:
+                # Try to get the reel name insted 
+                clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+                print(clipReel)
+                if clipReel:
+                    clipDict[clipReel] = (mpClip,'MOG',clip)
+                    numClips+=1
+                
     
     print_info(numClips,"not corformed clips found in timeline...")        
     return clipDict if numClips > 0 else None
@@ -605,6 +663,8 @@ def extractReelName(value: str, fieldSep = None, fieldCount = None):
     if fieldSep == None and fieldCount == None: # is sony
         return clipName
     fields = clipName.split(fieldSep)[0:fieldCount]
+    if len(fields) != fieldCount:
+        return None
     #print(fields)
     return fieldSep.join(fields)
     
