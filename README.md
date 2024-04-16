@@ -65,8 +65,8 @@ The settings file is created by the ConformAll.py script.
 
 # Versions
 2024.0.6
-  - New blacklist_files.json is create in the Avid Path containing a list of files that the DR cannot import to the Media Pool. This avoids consecutives tries to import this files.
-  - Try to import MOG files with the clip Reel Name (e.g. consolidation of MOG MPEG50 proxy files) if the clip that does not have the MOG filename template in the clipname.    
+  - A new file blacklist_files.json is created in the Avid Path containing a list of files that the DR does not import into the Media Pool. This avoids consecutives tries to import this files.
+  - Try to import MOG files with the clip Reel Name (e.g. Avid consolidation of MOG MPEG50 proxy files) if the clip that does not have the MOG filename template in the clipname.    
 
 2024.0.5
 - Bug solved: fail to delete files from edit storage if the clip does not have the proxy association.
