@@ -606,13 +606,11 @@ def getTimelineClipsMog(clipsList):
             clipReel = extractReelName(clipName,fieldSep,fieldCount)
             #clipReel = mpClip.GetClipProperty("Reel Name")
             if clipReel:
-                print("From clipname:",clipReel)
                 clipDict[clipReel] = (mpClip,'MOG',clip)
                 numClips+=1
             else:
                 # Try to get the reel name insted 
                 clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
-                print(clipReel)
                 if clipReel:
                     clipDict[clipReel] = (mpClip,'MOG',clip)
                     numClips+=1
