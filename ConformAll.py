@@ -35,7 +35,7 @@ RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
 STOCK_DRB="stock_" + RESOLVE_VERSION_SUFIX + ".drb"
-BLACKLIST_FILES="blacklist_files.json"
+BLACKLIST_FILES="blacklist_files_" + RESOLVE_VERSION_SUFIX + ".json"
 print_info("ConformAll version:",CONFORM_ALL_VERSION)
 print_info("DaVinci Resolve Version:",RESOLVE_VERSION_STRING)
 userPath = os.path.expanduser("~")
@@ -414,27 +414,34 @@ def importClips(files):
         else:
             print_error("Stock folder creation canceled.")
             return stock
-        
+    
+    print_info("Getting filenames from stock folder clips...") 
     currentClipsFileNames = []
+    ts = time.time()
     for clip in stock.GetClipList():
         if clip:
             currentClipsFileNames.append(clip.GetClipProperty("File Name"))
-    
+        now = time.time()
+        if ts + 1. < now:
+            print("",end=".")
+            ts = now
+    print()
+        
     clipsInMP = len(currentClipsFileNames)
     filesNumber = len(files)
     if filesNumber == 0:
         print_warning("There is no files to import!")
         return stock
     
-    clipsToImport=filesNumber - clipsInMP
+    #clipsToImport=filesNumber - clipsInMP
     print_info(clipsInMP,"clips already in media pool..")
-    print_info(clipsToImport, "files to import...")
     print_info("Preparing list of files to import.")
     bmd.wait(0.2)
     #print(files[0] if len(files) > 0  else "None")
         
     files2Process=[]
     blacklist = loadBlacklistFiles(os.path.join(getUIValues()[5],BLACKLIST_FILES))
+    print_info(len(blacklist),"files in blacklist.")
     ts = time.time()
     for file in files:
         basename = os.path.basename(file)
@@ -445,8 +452,8 @@ def importClips(files):
         if ts + 1. < now:
             print("",end=".")
             ts = now
-        
     print()
+    print_info(len(files2Process), "files to import...")
     clips2ImportCounter = len(files2Process)
     
     mediaPool.SetCurrentFolder(stock)
@@ -463,25 +470,11 @@ def importClips(files):
         bmd.wait(0.2)
         importedClips += mediaPool.ImportMedia(files2Process[l_pointer:r_pointer])
 
-    print()       
     mediaPool.RefreshFolders()
     print_info("Creating blacklist...")
-    createBlackListFiles(importedClips,files2Process,blacklist)
-    #if importedClips:
-    #    importedClipsNumber = len(importedClips)
-    #    print("Adding Reel Number to metadata...")
-    #    print()
-    #    counter = 0
-    #    for c in importedClips:
-    #        c.SetMetadata("Reel Number",c.GetClipProperty("Reel Name"))
-    #        counter+=1
-    #        print(importedClipsNumber-counter,end=" remaining...")
-    #    print()
+    blacklist = createBlackListFiles(importedClips,files2Process,blacklist)
+    print_info(len(blacklist),"files in blacklist.")
     
-    #for mpClip in stock.GetClipList():
-    #    if mpClip:
-    #        mpClip.SetClipProperty("Clip Name",os.path.splitext(mpClip.GetClipProperty("Reel Name"))[0])
-            
     if not isImportExportDrbPossible():
         genericPopupDialog("This DaVinci Resolve version ("+ RESOLVE_VERSION_STRING + "), can not export the stock bin folder.\nPlease, do it manualy if you want to.",
             "Ok")
