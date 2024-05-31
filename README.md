@@ -64,6 +64,9 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.0.7
+  - Extension is removed from reel names than have it.
+
 2024.0.6
   - A new file blacklist_files.json is created in the Avid Path containing a list of files that the DR does not import into the Media Pool. This avoids consecutives tries to import this files.
   - Try to import MOG files with the clip Reel Name (e.g. Avid consolidation of MOG MPEG50 proxy files) if the clip that does not have the MOG filename template in the clipname.    

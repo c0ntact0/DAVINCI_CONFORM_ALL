@@ -620,6 +620,7 @@ def getTimelineClipsOthers(clipsList,clipType):
         
     Returns a dict as {clipReel: (<media pool clip>,clipType,timelineClip),...}
     """
+    mimes=["." + x.upper() for x in settingsJson.get('fileExtensions',[])]
     print_info("Getting " + clipType + " Clips...")
     clipDict = {}
     numClips=0
@@ -632,11 +633,15 @@ def getTimelineClipsOthers(clipsList,clipType):
                 clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
                 
             if clipReel:
-                
+                # remove extension from the reel name, if exists
+                reelNoExt,reelExt = os.path.splitext(clipReel)
+                if reelExt.upper() in mimes:
+                    clipReel = reelNoExt
                 clipDict[clipReel] = (mpClip,clipType,clip)
                 numClips+=1
             
-    
+    #if numClips > 0:
+    #    pprint(clipDict)
     print_info(numClips,"not corformed clips found in timeline...")        
     return clipDict if numClips > 0 else None
 
