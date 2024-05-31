@@ -1521,7 +1521,6 @@ def MainWindow():
     cbProjects.AddItems(getProjects())
     cbProjects.CurrentText = currentHouseProject
     
-    
     houseProjectLayout = ui.VGroup({'ID':'houseProjectLayout','Weight': 0.0},[
         ui.Label({'Text':'House Project','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
         ui.HGroup({'Weight': 0.0},[cbProjects,
@@ -1599,7 +1598,8 @@ def MainWindow():
     )
     
     vLayoutGeneral = ui.VGroup({'Weight': 0.0},
-        [houseProjectLayout,
+        [ui.Label({'Text':'<p><a href="https://github.com/c0ntact0/DAVINCI_CONFORM_MOG/blob/main/README.md#versions" target="_blank">Versions</a></p>','OpenExternalLinks':True}),
+        houseProjectLayout,
          ui.VGap(0.2),
          ui.Label({'Text':'Mog Settings','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
          ui.VGap(0.2),
