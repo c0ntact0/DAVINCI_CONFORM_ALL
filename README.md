@@ -64,9 +64,12 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.0.8
+  - Stock bin lock is ignored if the machine trying to access the stock bin is the owner of the lock.
+
 2024.0.7
   - Extension is removed from reel names than have it.
-  - Versions link added.
+  - Versions hyperlink added.
 
 2024.0.6
   - A new file blacklist_files.json is created in the Avid Path containing a list of files that the DR does not import into the Media Pool. This avoids consecutives tries to import this files.

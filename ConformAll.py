@@ -30,7 +30,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.0.7"
+CONFORM_ALL_VERSION="2024.0.8"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -340,9 +340,15 @@ def lockBinFile(binFilePath: str):
         with open(lockFile,'r') as openFile:
             lockDic = json.load(openFile)
         hostName = lockDic['hostName']
-        errorPopupDialog("The bin file is locked by the workstation named \"" + hostName + "\".\n" \
-            "Try again later ...")
-        return False
+        if hostName != getHostName():
+            errorPopupDialog("The bin file is locked by the workstation named \"" + hostName + "\".\n" \
+                "Try again later ...")
+            return False
+        else:
+            # it's the same machine
+            print_info("The stock bin it's locked but this machine is the owner of the lock.")
+            return True
+
     
     #if not os.path.exists(binFilePath):
     #    print("Stock bin file noes not exist.")
@@ -362,12 +368,20 @@ def unlockBinFile(binFilePath: str):
         with open(lockFile,'r') as openFile:
             lockDic = json.load(openFile)
         if hostName == lockDic['hostName']:
-            os.remove(lockFile)
+            try:
+                os.remove(lockFile)
+                print_info("Stock bin lock removed.")
+            except Exception as e:
+                print_error(f"Some error ocurred: {e}")
+                return False
         else:
-            print_error("Can't unlock stock bin file! This machine is not the own the lock!")
+            print_error("Can't unlock stock bin file! This machine is not the owner of the lock!")
+            return False
     else:
         print_warning("Stock bin lock does not exist!")
-            
+    
+    return True
+                
 
 def importClips(files):
     global stockBinPath
