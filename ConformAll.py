@@ -2,6 +2,7 @@
 # See the README.txt for install
 import os
 import json
+import csv
 import datetime
 from pprint import pprint
 import sys
@@ -13,6 +14,104 @@ from multiprocessing.shared_memory import ShareableList,SharedMemory
 from multiprocessing import resource_tracker
 #sys.path.append('/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules')
 #import DaVinciResolveScript as dvr
+
+class MyMpClip():
+    
+    def __init__(self,
+                 file_name:str,
+                 video_codec:str,
+                 name:str,
+                 recordFrame:int,
+                 startFrame:int,
+                 endFrame:int,
+                 track:int) -> None:
+        
+        self._properties = {
+            "File Name":file_name,
+            "Video Codec":video_codec,
+            "Reel Name":file_name,
+            "Clip Name":name,
+            "Clip Color":"Apricot",
+            
+        }
+        self._recordFrame = recordFrame
+        self._startFrame = startFrame
+        self._endFrame = endFrame
+        self._track = track
+        self._mpClip = self
+        self._timelineClip = None
+    
+    def setTimelineClip(self,clip):
+        self._timelineClip = clip
+        
+    def GetClipProperty(self,key:str=None):
+        if isinstance(self._mpClip,MyMpClip):
+            if key:
+                return self._properties.get(key,"")
+            else:
+                return self._properties
+        else:
+            return self._mpClip.GetClipProperty(key)
+        
+    def SetClipProperty(self,key:str,value:any):
+        if isinstance(self._mpClip,MyMpClip):
+            self._properties[key] = value
+        else:
+            self._mpClip.SetClipProperty(key,value)
+            
+    def SetClipColor(self,colorName):
+        colorName = "Apricot"
+        if isinstance(self._mpClip,MyMpClip):
+            self._properties["Clip Color"] = colorName
+        else:
+            if len(self._mpClip.GetClipColor()) == 0:
+                self._mpClip.SetClipColor(colorName)
+    
+    def LinkProxyMedia(self,proxyMediaFilePath):
+        if not isinstance(self._mpClip,MyMpClip):
+            self._mpClip.LinkProxyMedia(proxyMediaFilePath)
+    
+    def GetName(self):
+        return self._properties["Clip Name"]
+    
+    def ReplaceClip(self,filename:str):
+        ret = True
+        currentFolder = getMediaFolder(currentTimeline.GetName())
+        binFolder = getMediaFolder("media",parent = currentFolder)
+        mediaPool.SetCurrentFolder(binFolder)
+        mpClips = mediaPool.ImportMedia([filename])
+        if mpClips:
+            self._mpClip = mpClips[0]
+            if self._timelineClip:
+                self._startFrame = self._timelineClip.GetLeftOffset()
+                self._endFrame = self._timelineClip.GetRightOffset()
+                self._recordFrame = self._timelineClip.GetStart()
+                currentTimeline.DeleteClips([self._timelineClip])
+            ## Appends list of clipInfos specified as dict of "mediaPoolItem", "startFrame" (int), "endFrame" (int), (optional) "mediaType" (int; 1 - Video only, 2 - Audio only), "trackIndex" (int) and "recordFrame" (int). Returns the list of appended timelineItems.
+                clipDict = {
+                    "mediaPoolItem":mpClips[0],
+                    "startFrame":self._startFrame,
+                    "endFrame":self._endFrame,
+                    "mediaType":1,
+                    "trackIndex":self._track,
+                    "recordFrame":self._recordFrame
+                }
+                timelineClips = mediaPool.AppendToTimeline([clipDict])
+                if timelineClips:
+                    print_info("Timeline item",timelineClips[0].GetName(),"created.")
+                else:
+                    print_error("Can't create tileline item!")
+            else:
+                print_error("No timeline item!")    
+            
+        else:
+            print_error("Can't import",filename)
+            ret = False
+                
+        mediaPool.SetCurrentFolder(currentFolder)
+        
+        return ret
+            
 
 def print_error(*args,sep: str = " ", end: str = "\n"):
     print('ERROR:','',end='')
@@ -30,7 +129,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.0.8"
+CONFORM_ALL_VERSION="2024.0.9"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -77,7 +176,8 @@ typeColor = {
     'SONY':'Violet',
     'OTHER':'Olive',
     'AUTO':'Yellow', # Media imported using the timeline import function, e.g. Edge proxy 
-    'SAME':'Navy' # The High Res codec is the same of Low Res
+    'SAME':'Navy', # The High Res codec is the same of Low Res
+    'NO_PROXY':'Apricot' # Used when the proxy from AAF is not imported, e.g. error importing, and we load the high resolution instead 
     
 }
 
@@ -225,6 +325,7 @@ def importIngestSettings(path:str,importToKey:str,importFromKey:str):
 
 
 def getAvidMedia(folderPaths : list):
+    
     print_info("Getting Media Files (Avid)")
     fileEndings = ["_0.MXF","V.MXF","_CC.MXF","_VFX.MXF",".pmxf"]
     avidFiles = []
@@ -296,6 +397,7 @@ def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
                 if clipDict.get(fileReel):
                     amaFiles[fileReel] = filename
                     numFiles+=1
+
         now = time.time()
         if ts + 1. < now:
             print("",end=".")
@@ -330,8 +432,11 @@ def getHostName():
     return hostName
 
 def lockBinFile(binFilePath: str):
-    
+    print_info("Locking stock bin.")
     folder = os.path.dirname(binFilePath)
+    if not os.path.exists(folder):
+        print_error(f"Cant create lock file. Folder {folder} does not exist. Do you forget to mount some drive?")
+        return False
     fileName = os.path.basename(binFilePath).removesuffix(".drb")
     lockFile = os.path.join(folder,fileName+".lock")
     lockDic = {}
@@ -348,7 +453,6 @@ def lockBinFile(binFilePath: str):
             # it's the same machine
             print_info("The stock bin it's locked but this machine is the owner of the lock.")
             return True
-
     
     #if not os.path.exists(binFilePath):
     #    print("Stock bin file noes not exist.")
@@ -557,6 +661,7 @@ def loadBlacklistFiles(blackListFileName:str):
             blacklist= blacklistJson.get('files',[])
     return blacklist
 
+
 def getTimelineClips():
     global currentTimeline    
     clips = []
@@ -566,9 +671,55 @@ def getTimelineClips():
     for i in range(1,videoTracks+1):
         print_info("Getting clips from track",i)
         for clip in currentTimeline.GetItemListInTrack('video', i):
-            clips.append(clip)
+            clips.append((clip,i))
             
     return clips
+
+def getTimelineClipNamesAndReels():
+    global currentTimeline    
+    currentTimeline = currentProject.GetCurrentTimeline()
+    csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
+    currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
+    data = {}
+    with open(csv_path,encoding='utf-8') as f:
+        csv_reader = csv.DictReader(f)
+        for rows in csv_reader:
+            track = rows['V']
+            key = rows['Name']
+            if track.startswith("V"):
+                if not data.get(key,False):
+                    data[key] = rows["Reel"]
+
+    return data
+
+def getTimelineClipFromEditIndex():
+    global currentTimeline    
+    currentTimeline = currentProject.GetCurrentTimeline()
+    csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
+    currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
+    with open(csv_path,encoding='utf-8') as f:
+        csv_reader = csv.DictReader(f)
+                
+        data = {}
+        for rows in csv_reader:
+            track = rows['V']
+            if track.startswith("V"):
+                rec_in = tc2Frames(rows['Record In'])
+                rec_out = tc2Frames(rows['Record Out'])
+                source_in = tc2Frames(rows['Source In'])
+                source_out = tc2Frames(rows['Source Out'])
+                key = (int(track[1:]),rec_in)
+
+                if not data.get(key,False):
+                    data[key] = MyMpClip(rows["Reel"],
+                                         rows["Codec"],
+                                         rows["Name"],
+                                         key[1],
+                                         rec_in, 
+                                         rec_out,
+                                         key[0])
+        print_info(f"Edit index have {len(data)} records.")
+        return data
 
 def getMpClipsFromTimeline(resolution:str = 'all'): 
     """
@@ -584,7 +735,7 @@ def getMpClipsFromTimeline(resolution:str = 'all'):
     clips = []
     currentList = [x.upper() for x in settingsJson.get(resolution,[])]
     for clip in timelineClips:
-        mpClip = clip.GetMediaPoolItem()
+        mpClip = clip[0].GetMediaPoolItem()
         if mpClip:
             codec = mpClip.GetClipProperty("Video Codec")
             if len(currentList) > 0 and codec.upper() in currentList:
@@ -605,23 +756,40 @@ def getTimelineClipsMog(clipsList):
     uiValues = getUIValues()
     fieldSep = uiValues[1]
     fieldCount = uiValues[2]
-    for clip in clipsList:
+    timeline_names_reels = getTimelineClipFromEditIndex()
+    #pprint(timeline_names_reels)
+    for clip_tuple in clipsList:
+        clip = clip_tuple[0]
+        track = clip_tuple[1]
         mpClip = clip.GetMediaPoolItem()
-        if mpClip and len(mpClip.GetClipProperty("Clip Color")) == 0:
-            # Try to extract the reel name from the clipname
-            clipName = mpClip.GetName()
-            clipReel = extractReelName(clipName,fieldSep,fieldCount)
-            #clipReel = mpClip.GetClipProperty("Reel Name")
-            if clipReel:
-                clipDict[clipReel] = (mpClip,'MOG',clip)
-                numClips+=1
-            else:
-                # Try to get the reel name insted 
-                clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+        if mpClip:
+            if len(mpClip.GetClipProperty("Clip Color")) == 0:
+                # Try to extract the reel name from the clipname
+                clipName = mpClip.GetName()
+                clipReel = extractReelName(clipName,fieldSep,fieldCount)
+                #clipReel = mpClip.GetClipProperty("Reel Name")
                 if clipReel:
                     clipDict[clipReel] = (mpClip,'MOG',clip)
                     numClips+=1
-                
+                else:
+                    # Try to get the reel name insted 
+                    clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+                    if clipReel:
+                        clipDict[clipReel] = (mpClip,'MOG',clip)
+                        numClips+=1
+        else:
+            tcIn = clip.GetStart()
+            print_warning("Trying to get the reel name from the edit index with timeline clip name",clip.GetName())
+            mpClip = timeline_names_reels.get((track,int(tcIn)),False)
+            if mpClip:
+                mpClip.setTimelineClip(clip)
+                clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+                if clipReel:
+                    print_info("Adding reel name from edit index:",clipReel)
+                    clipDict[clipReel] = (mpClip,'MOG',clip)
+                    numClips+=1
+            else:
+                print_error("No edit index found for that timeline clip!")
     
     print_info(numClips,"not corformed clips found in timeline...")        
     return clipDict if numClips > 0 else None
@@ -639,7 +807,7 @@ def getTimelineClipsOthers(clipsList,clipType):
     clipDict = {}
     numClips=0
     for clip in clipsList:
-        mpClip = clip.GetMediaPoolItem()
+        mpClip = clip[0].GetMediaPoolItem()
         if mpClip and len(mpClip.GetClipProperty("Clip Color")) == 0:
 
             clipReel = mpClip.GetClipProperty("Reel Name")
@@ -651,7 +819,7 @@ def getTimelineClipsOthers(clipsList,clipType):
                 reelNoExt,reelExt = os.path.splitext(clipReel)
                 if reelExt.upper() in mimes:
                     clipReel = reelNoExt
-                clipDict[clipReel] = (mpClip,clipType,clip)
+                clipDict[clipReel] = (mpClip,clipType,clip[0])
                 numClips+=1
             
     #if numClips > 0:
@@ -681,7 +849,7 @@ def extractReelName(value: str, fieldSep = None, fieldCount = None):
 def changeClipsColorOnAutoImportSourceClipsIntoMediaPool():
     timelineClips = getTimelineClips()
     for clip in timelineClips:
-        mpClip = clip.GetMediaPoolItem()
+        mpClip = clip[0].GetMediaPoolItem()
         if mpClip:
             mpClip.SetClipColor(typeColor['AUTO'])
         
@@ -689,7 +857,8 @@ def getTimelineCodecs():
     timelineClips = getTimelineClips()
     codecs=[]
     for clip in timelineClips:
-        mpClip = clip.GetMediaPoolItem()
+
+        mpClip = clip[0].GetMediaPoolItem()
         if mpClip:
             codec = mpClip.GetClipProperty("Video Codec")
             if codec not in codecs:
@@ -699,6 +868,8 @@ def getTimelineCodecs():
 
 def replaceClips(timelineClips:dict,files:dict):
     print_info("Conforming clips...")
+    print(len(timelineClips))
+    existOffline = False # turns true if offline proxies needed to be linked to high resolution
     currentFolder = getMediaFolder(currentTimeline.GetName())
     binFolder = getMediaFolder("media",parent = currentFolder)
     if not binFolder:
@@ -716,13 +887,16 @@ def replaceClips(timelineClips:dict,files:dict):
         proxyClipFileName=mpClip.GetClipProperty("File Name") 
         proxyClipPath=mpClip.GetClipProperty("File Path")
         proxyCodec=mpClip.GetClipProperty("Video Codec")
+
         clipName = mpClip.GetName()
         file = files.get(key)
+        #print(file)
         if file:
-            
+            if not existOffline and isinstance(mpClip,MyMpClip):
+                existOffline = True
             if mpClip.ReplaceClip(file):
                 bmd.wait(0.1)
-                if proxyCodec == mpClip.GetClipProperty("Video Codec"):
+                if proxyCodec == mpClip.GetClipProperty("Video Codec") and not isinstance(mpClip,MyMpClip):
                     print_warning("New and old files have de same codec.")
                     mpClip.ReplaceClip(proxyClipPath)
                     bmd.wait(0.1)
@@ -745,19 +919,21 @@ def replaceClips(timelineClips:dict,files:dict):
     
     mediaPool.MoveClips(clips2Move,binFolder)
     mediaPool.SetCurrentFolder(currentFolder)
-    #TODO: ver porque os ficheiros mog não lidos depois de reler o AAF
-    #if clipType != "MOG":
-    #    path = getUIValues()[4]
-    #    if not currentTimeline.ImportIntoTimeline(path,{
-    #    "linkToSourceCameraFiles":True,
-    #    "ignoreFileExtensionsWhenMatching":True,
-    #    "autoImportSourceClipsIntoMediaPool":False,
-    #    "insertAdditionalTracks":False,
-    #    "useSizingInfo":True,"sourceClipsFolders":[binFolder, getMediaFolder("stock")]    
-    #    }):
-    #        print("Error reimporting the timeline. Confirm if the AAF file in the import AAF field matches the imported timeline. You can conform again when the AAF matches.")
     print_info(str(counter)," clips conformed.")
-
+    
+    if existOffline:
+        msg = \
+"""
+Some Avid clips failed to import when the AAF was imported.
+The ConformAll script have tried to import the high resolution files for this clips to the \"media\" bin.
+You can conform this clips using the \"Reconform from bins...\" feature in the \"File\" menu of the DaVinci Resolve.
+In the \"Conform from bins\" dialog perform the following steps:
+1. Select \"Timecode -> Source timecode\" in the \"Conform Options\" panel.
+2. Select the \"media\" bin (inside the bin with the AAF name) from the \"Choose Conform Bins\".
+3. Press the "\Ok\" button.
+"""
+#        _,_,_ = genericPopupDialog(msg)
+    return counter
 def insertReferences():
     global currentTimeline
     
@@ -832,6 +1008,24 @@ def fileExists(filePath, extraText = ""):
     
     return True
 
+def tc2Frames(tc:str):
+    
+    """
+    Returns a timecode string in frames (int)
+    """
+    
+    tc_list = tc.split(":")
+    hours = int(tc_list[0])
+    minuts = int(tc_list[1])
+    seconds = int(tc_list[2])
+    frames = int(tc_list[3])
+    fps = int(currentProject.GetSetting("timelineFrameRate"))
+    
+    tc_frames = hours * 60 * 60 * fps + minuts * 60 * fps + seconds * fps + frames
+    
+    return tc_frames
+    
+    
 def isOnStockFolder():
     if mediaPool.GetCurrentFolder().GetName() == "stock":
         errorPopupDialog("You can not do this operation inside the stock folder/bin.\nPlease choose another folder/bin")
@@ -901,6 +1095,50 @@ def isDrbTodayFirstExport():
         
     return False
     
+def areFoldersOk():
+    """
+    Get the UI values.
+    
+    Return (index:value): (
+        0:mogPath (string),
+        1:fieldSeparator (string),
+        2:fieldCount (int), 
+        3:sonyPath (string), 
+        4:aafPath (string),
+        5:avidPath (string),
+        6:motionPath (string),
+        7:motionFieldSeparator (string),
+        8:motionFieldCount (int),
+        9:exportStock (bool),
+        10:importStock (bool),
+        11:copyMediaPath (string)
+        12:autoImportSourceClipsIntoMediaPool (bool)
+        ) Tuple
+    """
+    
+    ui_values = getUIValues()
+    msg = ""
+    ret = True
+    if not os.path.exists(ui_values[0]):
+        ret = False
+        msg += f"The Mog Path {ui_values[0]} does not exist.\n"
+    if not os.path.exists(ui_values[0]):
+        ret = False
+        msg += f"The Sony Path {ui_values[3]} does not exist.\n"
+    if not os.path.exists(ui_values[0]):
+        ret = False
+        msg += f"The Avid Path {ui_values[5]} does not exist.\n"
+    if not os.path.exists(ui_values[0]):
+        ret = False
+        msg += f"The Edit Storage Path {ui_values[11]} does not exist.\n"
+    if not ret:
+        msg += "\nDo you forget to mount any drive?"
+        accept,_,_ = genericPopupDialog(msg,"Continue","Exit",haveRejectButton=True)
+        ret = accept
+    
+    return ret
+
+    
 
 def timelineExists(timelineName:str):
     for i in range(1,currentProject.GetTimelineCount()+1):
@@ -953,11 +1191,19 @@ def BtConformMog(ev):
     buttonsEnabled(False)
     uiValues = getUIValues()
     mogPath = uiValues[0]
-    timelineClipDict = getTimelineClipsMog(getTimelineClips())
-    
-    if timelineClipDict and isReelNameSelected(timelineClipDict):
-        mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
-        replaceClips(timelineClipDict,mogDic)
+    maxRetries = 20
+    retry = 1
+    result = 1
+    mogDic = None
+    while retry < maxRetries and result > 0:
+        print_info(f"Retry {retry}")
+        timelineClipDict = getTimelineClipsMog(getTimelineClips())
+
+        if timelineClipDict and isReelNameSelected(timelineClipDict):
+            if not mogDic:
+                mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
+            result = replaceClips(timelineClipDict,mogDic)
+        retry+=1
     buttonsEnabled(True)
     print_info("Finished MOG conforming...")
     return True
@@ -1029,7 +1275,8 @@ def otioTransform(path):
     #        pprint(tool.GetData())
     
     return aafFile
-
+def otioExport(path:str):
+    pass
 def BtImportAAF(ev):
     global currentTimeline,stockBinPath
     values = getUIValues()
@@ -1309,11 +1556,12 @@ def OnBrowse(ev):
     elif who == "btBrowseAvid":
         txt = win.Find('txtAvidPath')
         newPath = fu.RequestDir(txt.Text)
-        if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep):
-            txt.Text = newPath
-        else:
-            print_error('Wrong path')
-            errorPopupDialog(newPath + " is a wrong Path.\nThe path must be in the format <Volume>" + os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep)
+        if newPath:
+            if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep):
+                txt.Text = newPath
+            else:
+                print_error('Wrong path')
+                errorPopupDialog(newPath + " is a wrong Path.\nThe path must be in the format <Volume>" + os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep)
             
     elif who == "btBrowseAAF":
         txt = win.Find('txtAAFPath')
@@ -1439,9 +1687,31 @@ def OnProxyCodecsList(ev):
 
             
 def OnTeste(ev):
-    global stockBinPath
-    stockBinPath = os.path.join(getUIValues()[5],STOCK_DRB)
-    print(isDrbExportedToday())
+    csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
+    currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
+    data = {}
+    with open(csv_path,encoding='utf-8') as f:
+        csv_reader = csv.DictReader(f)
+        for rows in csv_reader:
+            #key = rows['\ufeff"#"']
+            #print(key)
+            #data[key] = rows
+            track = rows['V']
+            rec_in = rows['Record In']
+            key = rows['Name']
+            if track.startswith("V"):
+                if not data.get(key,False):
+                    data[key] = rows["Reel"]
+                else:
+                    print("Name already exist")
+    pprint(data)
+    return
+    tools = fu.GetToolList()
+    print(tools)
+    for clip in getTimelineClips():
+        mpClip = clip.GetMediaPoolItem()
+        if not mpClip:
+            fu_comp = clip.AddFusionComp()
     
 # =============== UI CONFIGURATION =============
 
@@ -1644,7 +1914,7 @@ def MainWindow():
          ui.Label({'Text':'Copy files to edit storage and relink','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
          ui.VGap(2),
          copyMediaLayout
-         #,ui.Button({'ID':'btTeste','Text':'Teste'})
+         ,ui.Button({'ID':'btTeste','Text':'Teste'})
          ]
         
     )
@@ -1894,13 +2164,13 @@ if __name__ == "__main__":
     dispatcher = bmd.UIDispatcher(ui)
 
     currentProject = pm.GetCurrentProject()
+    #pprint(currentProject.GetSetting())
     print_info("Current DaVinci Resolve project:",currentProject.GetName())
     #pprint(currentProject.GetSetting())
     currentTimeline = currentProject.GetCurrentTimeline()
     mediaPool = currentProject.GetMediaPool()
-       
     win = MainWindow()
-
-    win.Show()
-    dispatcher.RunLoop()
+    if areFoldersOk():
+        win.Show()
+        dispatcher.RunLoop()
     win.Hide()
