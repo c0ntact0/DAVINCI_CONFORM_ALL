@@ -111,7 +111,40 @@ class MyMpClip():
         mediaPool.SetCurrentFolder(currentFolder)
         
         return ret
-            
+    
+    
+    #def ReplaceClip(self,mpClip):
+    #    ret = True
+    #    if mpClip:
+    #        self._mpClip = mpClip
+    #        if self._timelineClip:
+    #            self._startFrame = self._timelineClip.GetLeftOffset()
+    #            self._endFrame = self._timelineClip.GetRightOffset()
+    #            self._recordFrame = self._timelineClip.GetStart()
+    #            currentTimeline.DeleteClips([self._timelineClip])
+    #        ## Appends list of clipInfos specified as dict of "mediaPoolItem", "startFrame" (int), "endFrame" (int), (optional) "mediaType" (int; 1 - Video only, 2 - Audio only), "trackIndex" (int) and "recordFrame" (int). Returns the list of appended timelineItems.
+    #            clipDict = {
+    #                "mediaPoolItem":mpClip,
+    #                "startFrame":self._startFrame,
+    #                "endFrame":self._endFrame,
+    #                "mediaType":1,
+    #                "trackIndex":self._track,
+    #                "recordFrame":self._recordFrame
+    #            }
+    #            timelineClips = mediaPool.AppendToTimeline([clipDict])
+    #            if timelineClips:
+    #                print_info("Timeline item",timelineClips[0].GetName(),"created.")
+    #            else:
+    #                print_error("Can't create tileline item!")
+    #        else:
+    #            print_error("No timeline item!")    
+    #        
+    #    else:
+    #        print_error("Clip not valid")
+    #        ret = False
+    #            
+    #   
+    #    return ret
 
 def print_error(*args,sep: str = " ", end: str = "\n"):
     print('ERROR:','',end='')
@@ -753,6 +786,7 @@ def getTimelineClipsMog(clipsList):
     print_info("Getting MOG Clips...")
     clipDict = {}
     numClips=0
+    numClipsEditIndex=0
     uiValues = getUIValues()
     fieldSep = uiValues[1]
     fieldCount = uiValues[2]
@@ -788,10 +822,11 @@ def getTimelineClipsMog(clipsList):
                     print_info("Adding reel name from edit index:",clipReel)
                     clipDict[clipReel] = (mpClip,'MOG',clip)
                     numClips+=1
+                    numClipsEditIndex+=1
             else:
                 print_error("No edit index found for that timeline clip!")
     
-    print_info(numClips,"not corformed clips found in timeline...")        
+    print_info(numClips,"not corformed clips found in timeline.",numClipsEditIndex,"clips detected with edit index...")        
     return clipDict if numClips > 0 else None
 
 def getTimelineClipsOthers(clipsList,clipType):
@@ -868,8 +903,6 @@ def getTimelineCodecs():
 
 def replaceClips(timelineClips:dict,files:dict):
     print_info("Conforming clips...")
-    print(len(timelineClips))
-    existOffline = False # turns true if offline proxies needed to be linked to high resolution
     currentFolder = getMediaFolder(currentTimeline.GetName())
     binFolder = getMediaFolder("media",parent = currentFolder)
     if not binFolder:
@@ -892,8 +925,7 @@ def replaceClips(timelineClips:dict,files:dict):
         file = files.get(key)
         #print(file)
         if file:
-            if not existOffline and isinstance(mpClip,MyMpClip):
-                existOffline = True
+
             if mpClip.ReplaceClip(file):
                 bmd.wait(0.1)
                 if proxyCodec == mpClip.GetClipProperty("Video Codec") and not isinstance(mpClip,MyMpClip):
@@ -920,20 +952,17 @@ def replaceClips(timelineClips:dict,files:dict):
     mediaPool.MoveClips(clips2Move,binFolder)
     mediaPool.SetCurrentFolder(currentFolder)
     print_info(str(counter)," clips conformed.")
-    
-    if existOffline:
-        msg = \
-"""
-Some Avid clips failed to import when the AAF was imported.
-The ConformAll script have tried to import the high resolution files for this clips to the \"media\" bin.
-You can conform this clips using the \"Reconform from bins...\" feature in the \"File\" menu of the DaVinci Resolve.
-In the \"Conform from bins\" dialog perform the following steps:
-1. Select \"Timecode -> Source timecode\" in the \"Conform Options\" panel.
-2. Select the \"media\" bin (inside the bin with the AAF name) from the \"Choose Conform Bins\".
-3. Press the "\Ok\" button.
-"""
-#        _,_,_ = genericPopupDialog(msg)
+        
     return counter
+
+def getMpClipMyName(name:str,mediaFolder):
+    for clip in mediaFolder.GetClipList():
+        if name == clip.GetName():
+            return clip
+        
+    return None
+    
+
 def insertReferences():
     global currentTimeline
     
@@ -1191,19 +1220,19 @@ def BtConformMog(ev):
     buttonsEnabled(False)
     uiValues = getUIValues()
     mogPath = uiValues[0]
-    maxRetries = 20
-    retry = 1
+    maxRetries = 30
+    retry = 0
     result = 1
     mogDic = None
     while retry < maxRetries and result > 0:
-        print_info(f"Retry {retry}")
+        retry+=1
+        print_info(f"Retry {retry} of {maxRetries}")
         timelineClipDict = getTimelineClipsMog(getTimelineClips())
 
         if timelineClipDict and isReelNameSelected(timelineClipDict):
             if not mogDic:
                 mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
             result = replaceClips(timelineClipDict,mogDic)
-        retry+=1
     buttonsEnabled(True)
     print_info("Finished MOG conforming...")
     return True
@@ -1687,31 +1716,61 @@ def OnProxyCodecsList(ev):
 
             
 def OnTeste(ev):
-    csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
-    currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
-    data = {}
-    with open(csv_path,encoding='utf-8') as f:
-        csv_reader = csv.DictReader(f)
-        for rows in csv_reader:
-            #key = rows['\ufeff"#"']
-            #print(key)
-            #data[key] = rows
-            track = rows['V']
-            rec_in = rows['Record In']
-            key = rows['Name']
-            if track.startswith("V"):
-                if not data.get(key,False):
-                    data[key] = rows["Reel"]
-                else:
-                    print("Name already exist")
-    pprint(data)
+    currentFolder = mediaPool.GetCurrentFolder()
+    timelineFolder = getMediaFolder(currentTimeline.GetName())
+    mediaFolder = getMediaFolder("media",timelineFolder)
+    if not mediaFolder:
+        mediaFolder = mediaPool.AddSubFolder(timelineFolder, "media")
+    uiValues = getUIValues()
+    mogPath = uiValues[0]
+    timelineClips = getTimelineClips()
+    print(len(timelineClips),"clips in timeline")
+    timelineClipDict = getTimelineClipsMog(timelineClips)
+    mediaPool.SetCurrentFolder(mediaFolder)
+    
+    
+    #pprint(timelineClipDict)
+    
+    files = getMediaFiles(mogPath,timelineClipDict,["ama"])
+    files2import = []
+    myMpClips = []
+    for key,value in timelineClipDict.items():
+        mpClip = value[0]
+        if isinstance(mpClip,MyMpClip):
+            myMpClips.append(mpClip)
+            file = files.get(key,False)
+            if file:
+                files2import.append(file)
+            else:
+                print("Failed file",file)
+                
+    importedClips = mediaPool.ImportMedia(files2import)
+    for clip in myMpClips:
+        for c in importedClips:
+            if c.GetName() == clip.GetClipProperty('File Name'):
+                clip.ReplaceClip(c)
+    
     return
-    tools = fu.GetToolList()
-    print(tools)
-    for clip in getTimelineClips():
-        mpClip = clip.GetMediaPoolItem()
-        if not mpClip:
-            fu_comp = clip.AddFusionComp()
+    
+    myMpClipCounter=0
+    for key,value in timelineClipDict.items():
+        mpClip = value[0]
+        if isinstance(mpClip,MyMpClip):
+            myMpClipCounter+=1
+            file = files.get(key,False)
+            if file:
+                mpClip.ReplaceClip(file)
+                mpClip.LinkProxyMedia("")
+                mpClip.SetClipColor(typeColor['MOG'])
+                mpClip.SetClipProperty("Scene","")
+            else:
+                print(key,"does not have file")
+        elif mpClip == None:
+            print("Key",key,"have a null object") 
+    
+    print(myMpClipCounter,"MyMpClips found")
+                
+        
     
 # =============== UI CONFIGURATION =============
 
