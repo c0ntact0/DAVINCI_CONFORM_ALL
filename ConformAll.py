@@ -129,7 +129,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.0.9"
+CONFORM_ALL_VERSION="2024.1.0"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -1914,7 +1914,7 @@ def MainWindow():
          ui.Label({'Text':'Copy files to edit storage and relink','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
          ui.VGap(2),
          copyMediaLayout
-         ,ui.Button({'ID':'btTeste','Text':'Teste'})
+         #,ui.Button({'ID':'btTeste','Text':'Teste'})
          ]
         
     )
