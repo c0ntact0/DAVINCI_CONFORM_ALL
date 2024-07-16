@@ -1914,7 +1914,7 @@ def MainWindow():
          ui.Label({'Text':'Copy files to edit storage and relink','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
          ui.VGap(2),
          copyMediaLayout
-         ,ui.Button({'ID':'btTeste','Text':'Teste'})
+         #,ui.Button({'ID':'btTeste','Text':'Teste'})
          ]
         
     )
