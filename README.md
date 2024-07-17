@@ -64,10 +64,13 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.1
+  - Solved problem with the edit index timecode frame separator (":" or ".").
+
 2024.1.0
   - Solved bug when browsing for Avid Path and cancel the choose folder dialog.
   - New check runs at startup that verify if all folders exit. Useful if the user forget to mount any drive.
-  - Solved bug when trying to create lock file and the folder does not exist (e.g. drive not mounted)
+  - Solved bug when trying to create lock file and the folder does not exist (e.g. drive not mounted).
   - Solved problem with MOG corrupted MPEG50 proxies.
 
 2024.0.8

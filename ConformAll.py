@@ -162,7 +162,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.0"
+CONFORM_ALL_VERSION="2024.1.1"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -708,23 +708,6 @@ def getTimelineClips():
             
     return clips
 
-def getTimelineClipNamesAndReels():
-    global currentTimeline    
-    currentTimeline = currentProject.GetCurrentTimeline()
-    csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
-    currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
-    data = {}
-    with open(csv_path,encoding='utf-8') as f:
-        csv_reader = csv.DictReader(f)
-        for rows in csv_reader:
-            track = rows['V']
-            key = rows['Name']
-            if track.startswith("V"):
-                if not data.get(key,False):
-                    data[key] = rows["Reel"]
-
-    return data
-
 def getTimelineClipFromEditIndex():
     global currentTimeline    
     currentTimeline = currentProject.GetCurrentTimeline()
@@ -814,7 +797,7 @@ def getTimelineClipsMog(clipsList):
         else:
             tcIn = clip.GetStart()
             print_warning("Trying to get the reel name from the edit index with timeline clip name",clip.GetName())
-            mpClip = timeline_names_reels.get((track,int(tcIn)),False)
+            mpClip = timeline_names_reels.get((track,tcIn),False)
             if mpClip:
                 mpClip.setTimelineClip(clip)
                 clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
@@ -1044,10 +1027,16 @@ def tc2Frames(tc:str):
     """
     
     tc_list = tc.split(":")
+    
     hours = int(tc_list[0])
     minuts = int(tc_list[1])
-    seconds = int(tc_list[2])
-    frames = int(tc_list[3])
+    if len(tc_list) == 4:
+        seconds = int(tc_list[2])
+        frames = int(tc_list[3])
+    else:
+        seconds_frames = tc_list[2].split(".")
+        seconds = int(seconds_frames[0])
+        frames = int(seconds_frames[1])
     fps = int(currentProject.GetSetting("timelineFrameRate"))
     
     tc_frames = hours * 60 * 60 * fps + minuts * 60 * fps + seconds * fps + frames
