@@ -1025,18 +1025,15 @@ def tc2Frames(tc:str):
     """
     Returns a timecode string in frames (int)
     """
-    
+    tc = tc.replace(".",":")
+    tc = tc.replace(";",":")
     tc_list = tc.split(":")
     
     hours = int(tc_list[0])
     minuts = int(tc_list[1])
-    if len(tc_list) == 4:
-        seconds = int(tc_list[2])
-        frames = int(tc_list[3])
-    else:
-        seconds_frames = tc_list[2].split(".")
-        seconds = int(seconds_frames[0])
-        frames = int(seconds_frames[1])
+    seconds = int(tc_list[2])
+    frames = int(tc_list[3])
+    
     fps = int(currentProject.GetSetting("timelineFrameRate"))
     
     tc_frames = hours * 60 * 60 * fps + minuts * 60 * fps + seconds * fps + frames

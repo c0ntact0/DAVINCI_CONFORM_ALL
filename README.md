@@ -65,7 +65,7 @@ The settings file is created by the ConformAll.py script.
 
 # Versions
 2024.1.1
-  - Solved problem with the edit index timecode frame separator (":" or ".").
+  - Solved problem with the edit index timecode frame separator ("." or ";" are converted to ":").
 
 2024.1.0
   - Solved bug when browsing for Avid Path and cancel the choose folder dialog.
