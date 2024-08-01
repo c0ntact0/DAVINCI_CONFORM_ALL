@@ -162,7 +162,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.1"
+CONFORM_ALL_VERSION="2024.1.2"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -337,11 +337,9 @@ def getUMEPath():
     if len(avidPath[1]) == 0: # path have a tail separator
         avidPath=os.path.split(avidPath[0])
     umePath = os.path.join(avidPath[0],'UME')
-    if os.path.isdir(umePath):
-        return umePath
+#    if os.path.isdir(umePath):
+    return umePath
     
-    return None
-
 def importIngestSettings(path:str,importToKey:str,importFromKey:str):
     if os.path.exists(path):
         with open(path,'r') as openFile:
@@ -363,11 +361,12 @@ def getAvidMedia(folderPaths : list):
     fileEndings = ["_0.MXF","V.MXF","_CC.MXF","_VFX.MXF",".pmxf"]
     avidFiles = []
     ts = time.time()
+    print_info("Avid folders list:",folderPaths)
     for folderPath in folderPaths:
-        isUME = os.path.basename(folderPath) == "UME"
         if not os.path.exists(folderPath):
             print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
             continue
+        isUME = os.path.basename(folderPath) == "UME"
         for root, dirs, files in os.walk(folderPath):
             for name in files:
                 if not "Quarantine File" in root and not "Creating" in root and not name.startswith("."):
@@ -1326,7 +1325,8 @@ def BtImportAAF(ev):
     stock = None
     if not autoImportSourceClipsIntoMediaPool:
         stock = getAvidMedia([values[5],getEdgeProxyPath(),getUMEPath()])
-
+        if not stock:
+            return
         clips = stock.GetClipList()
         if len(clips) == 0:
             print_warning("There is no clips in stock folder!")

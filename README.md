@@ -64,6 +64,10 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.2
+  - Solved bug when the UME folder does not exit
+  - Solved bug when the stock bin creation was canceled.
+
 2024.1.1
   - Solved problem with the edit index timecode frame separator ("." or ";" are converted to ":").
 
