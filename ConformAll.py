@@ -162,7 +162,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.2"
+CONFORM_ALL_VERSION="2024.1.3"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -363,8 +363,8 @@ def getAvidMedia(folderPaths : list):
     ts = time.time()
     print_info("Avid folders list:",folderPaths)
     for folderPath in folderPaths:
-        if not os.path.exists(folderPath):
-            print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
+        if not folderPath or not os.path.exists(folderPath):
+            print_error("The folder",folderPath,"does not exist. Do you forget to mount any drive?")
             continue
         isUME = os.path.basename(folderPath) == "UME"
         for root, dirs, files in os.walk(folderPath):

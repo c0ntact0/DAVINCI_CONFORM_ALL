@@ -64,6 +64,9 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.3
+  - Solved bug when the proxies folder does not exit
+  
 2024.1.2
   - Solved bug when the UME folder does not exit
   - Solved bug when the stock bin creation was canceled.
