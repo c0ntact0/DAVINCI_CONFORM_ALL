@@ -64,6 +64,9 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.4
+  - All media types can now be conformed using the Edit Index information if the link to the AAF media failed.
+
 2024.1.3
   - Solved bug when the proxies folder does not exit
   

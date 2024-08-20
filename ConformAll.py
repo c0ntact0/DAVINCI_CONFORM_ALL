@@ -162,7 +162,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.3"
+CONFORM_ALL_VERSION="2024.1.4"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -823,25 +823,47 @@ def getTimelineClipsOthers(clipsList,clipType):
     print_info("Getting " + clipType + " Clips...")
     clipDict = {}
     numClips=0
-    for clip in clipsList:
-        mpClip = clip[0].GetMediaPoolItem()
-        if mpClip and len(mpClip.GetClipProperty("Clip Color")) == 0:
+    numClipsEditIndex=0
+    timeline_names_reels = getTimelineClipFromEditIndex()
+    for clip_tuple in clipsList:
+        clip = clip_tuple[0]
+        track = clip_tuple[1]
+        mpClip = clip.GetMediaPoolItem()
+        if mpClip:
+            if len(mpClip.GetClipProperty("Clip Color")) == 0:
 
-            clipReel = mpClip.GetClipProperty("Reel Name")
-            if not clipReel:
-                clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
-                
-            if clipReel:
-                # remove extension from the reel name, if exists
-                reelNoExt,reelExt = os.path.splitext(clipReel)
-                if reelExt.upper() in mimes:
-                    clipReel = reelNoExt
-                clipDict[clipReel] = (mpClip,clipType,clip[0])
-                numClips+=1
-            
+                clipReel = mpClip.GetClipProperty("Reel Name")
+                if not clipReel:
+                    clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+
+                if clipReel:
+                    # remove extension from the reel name, if exists
+                    reelNoExt,reelExt = os.path.splitext(clipReel)
+                    if reelExt.upper() in mimes:
+                        clipReel = reelNoExt
+                    clipDict[clipReel] = (mpClip,clipType,clip)
+                    numClips+=1
+        else:
+            tcIn = clip.GetStart()
+            print_warning("Trying to get the reel name from the edit index with timeline clip name",clip.GetName())
+            mpClip = timeline_names_reels.get((track,tcIn),False)
+            if mpClip:
+                mpClip.setTimelineClip(clip)
+                clipReel = mpClip.GetClipProperty("Reel Name")
+                if not clipReel:
+                    clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+                if clipReel:
+                    print_info("Adding reel name from edit index:",clipReel)
+                    clipDict[clipReel] = (mpClip,clipType,clip)
+                    numClips+=1
+                    numClipsEditIndex+=1
+            else:
+                print_error("No edit index found for that timeline clip!")
+        
     #if numClips > 0:
     #    pprint(clipDict)
-    print_info(numClips,"not corformed clips found in timeline...")        
+    #print_info(numClips,"not corformed clips found in timeline...")    
+    print_info(numClips,"not corformed clips found in timeline.",numClipsEditIndex,"clips detected with edit index...")       
     return clipDict if numClips > 0 else None
 
 def removeExtension(path):
@@ -1236,13 +1258,20 @@ def BtConformCameras(ev):
         return False
     print_info("Processing " + clipType + "...")
     buttonsEnabled(False)
-    timelineClips = getTimelineClips()
-    clipDict = getTimelineClipsOthers(timelineClips,clipType)
-    if clipDict and isReelNameSelected(clipDict):
-    
-        sonyPath = getUIValues()[3]
-        sonyDic = getMediaFiles(sonyPath, clipDict,folderType)
-        replaceClips(clipDict,sonyDic)
+    maxRetries = 30
+    retry = 0
+    result = 1
+    sonyDic = None
+    sonyPath = getUIValues()[3]
+    while retry < maxRetries and result > 0:
+        retry+=1
+        print_info(f"Retry {retry} of {maxRetries}")
+        timelineClips = getTimelineClips()
+        clipDict = getTimelineClipsOthers(timelineClips,clipType)
+        if clipDict and isReelNameSelected(clipDict):
+            if not sonyDic:
+                sonyDic = getMediaFiles(sonyPath, clipDict,folderType)
+            result = replaceClips(clipDict,sonyDic)
     
     buttonsEnabled(True)
     print_info("Finished",clipType,"conforming...")
