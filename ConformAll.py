@@ -129,7 +129,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.5"
+CONFORM_ALL_VERSION="2024.1.6"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -678,7 +678,12 @@ def getTimelineClipFromEditIndex():
     global currentTimeline    
     currentTimeline = currentProject.GetCurrentTimeline()
     csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
+    if os.path.exists(csv_path):
+        os.remove(csv_path) # remove to avoid false readings
     currentTimeline.Export(csv_path, resolve.EXPORT_TEXT_CSV, resolve.EXPORT_MISSING_CLIPS)
+    if not os.path.exists(csv_path):
+        print_error("Edit Index failed to export!")
+        return {}
     with open(csv_path,encoding='utf-8') as f:
         csv_reader = csv.DictReader(f)
                 
@@ -903,7 +908,17 @@ def replaceClips(timelineClips:dict,files:dict):
         file = files.get(key)
         #print(file)
         if file:
-
+            oldStartTc = mpClip.GetClipProperty("Start TC")
+            oldStartTCSplit = oldStartTc.split(":")
+            if oldStartTCSplit[0] == "24":
+                mpClip.SetClipProperty("Start TC","00:" + oldStartTCSplit[1] + ":" + oldStartTCSplit[2] + ":" + oldStartTCSplit[3])
+                oldEndTC = mpClip.GetClipProperty("End TC")
+                oldEndTCSplit = oldEndTC.split(":")
+                oldEndHour = int(oldEndTCSplit[0])
+                newEndHour = oldEndHour - 24
+                mpClip.SetClipProperty("End TC",str(newEndHour) + ":" + oldEndTCSplit[1]  + ":" + oldEndTCSplit[2] + ":" + oldEndTCSplit[3])
+                print_info("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty("Start TC"),"->",mpClip.GetClipProperty("End TC"))
+    
             if mpClip.ReplaceClip(file):
                 bmd.wait(0.1)
                 if proxyCodec == mpClip.GetClipProperty("Video Codec") and not isinstance(mpClip,MyMpClip):
@@ -918,7 +933,7 @@ def replaceClips(timelineClips:dict,files:dict):
                 mpClip.LinkProxyMedia(proxyClipPath)
                 mpClip.SetClipColor(typeColor[clipType])
                 mpClip.SetClipProperty("Scene",timelineClipName) 
-                mpClip.SetClipProperty("Reel",key) 
+                #mpClip.SetClipProperty("Reel",key) 
 
                 clips2Move.append(mpClip)
                 
@@ -1413,6 +1428,7 @@ def BtImportAAF(ev):
                             mpClip = getMpClipFromReelName(clipReel)
                             if mpClip:
                                 oldStartTC = mpClip.GetClipProperty("Start TC")
+                                
                                 if oldStartTC == "00:00:00:00":
                                     mpClip.SetClipProperty("Start TC","24:00:00:00")
                                     oldEndTC = mpClip.GetClipProperty("End TC")
