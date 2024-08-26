@@ -65,7 +65,7 @@ The settings file is created by the ConformAll.py script.
 
 # Versions
 2024.1.6
-  Solved problem with the starting TC when conforming clips that have the start and end TCs modified with the rotine implemented in version 2024.1.6.
+  - Solved problem with the starting TC when conforming clips that have the start and end TCs modified with the rotine implemented in version 2024.1.6.
 
 2024.1.5
   - Solved the DaVinci Resolve bug when importing clips with start TC at 00:00:00:00 from Avid AAFs. If any timeline clips don't have a corresponding media pool clip, the script will try to get the media pool clip using the Edit Index and change the start TC from 00:00:00:00 to 24:00:00:00 and the end TC adding 24 hours to the original end TC.
