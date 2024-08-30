@@ -64,6 +64,9 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.7
+  - Solved bug when conforming MOG media with corrupted MPEG50 proxies. When adding a high definition (AMA) clip to the timeline, one frame must be removed from the original timeline clip Right Offset.
+
 2024.1.6
   - Solved problem with the starting TC when conforming clips that have the start and end TCs modified with the rotine implemented in version 2024.1.5.
 

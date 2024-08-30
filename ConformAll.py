@@ -43,7 +43,7 @@ class MyMpClip():
     
     def setTimelineClip(self,clip):
         self._timelineClip = clip
-        
+    
     def GetClipProperty(self,key:str=None):
         if isinstance(self._mpClip,MyMpClip):
             if key:
@@ -79,23 +79,35 @@ class MyMpClip():
         currentFolder = getMediaFolder(currentTimeline.GetName())
         binFolder = getMediaFolder("media",parent = currentFolder)
         mediaPool.SetCurrentFolder(binFolder)
-        mpClips = mediaPool.ImportMedia([filename])
+        mpClips = binFolder.GetClipList() # try if clip alread exists
+        clipFound = False
         if mpClips:
+            for mpClip in mpClips:
+                if mpClip and mpClip.GetClipProperty("File Path") == filename:
+                    mpClips = [mpClip]
+                    clipFound = True
+                    print_info("Clip",mpClip.GetName(),"already exists in the media folder.")
+                    break
+        if not clipFound:
+            mpClips = mediaPool.ImportMedia([filename])
+        if len(mpClips) > 0 and mpClips[0]:
             self._mpClip = mpClips[0]
             if self._timelineClip:
+                print_info("Trying to create timeline clip",self._timelineClip.GetName())
                 self._startFrame = self._timelineClip.GetLeftOffset()
                 self._endFrame = self._timelineClip.GetRightOffset()
                 self._recordFrame = self._timelineClip.GetStart()
                 currentTimeline.DeleteClips([self._timelineClip])
             ## Appends list of clipInfos specified as dict of "mediaPoolItem", "startFrame" (int), "endFrame" (int), (optional) "mediaType" (int; 1 - Video only, 2 - Audio only), "trackIndex" (int) and "recordFrame" (int). Returns the list of appended timelineItems.
                 clipDict = {
-                    "mediaPoolItem":mpClips[0],
+                    "mediaPoolItem":self._mpClip,
                     "startFrame":self._startFrame,
-                    "endFrame":self._endFrame,
+                    "endFrame":self._endFrame-1,
                     "mediaType":1,
                     "trackIndex":self._track,
                     "recordFrame":self._recordFrame
                 }
+                #pprint(clipDict)
                 timelineClips = mediaPool.AppendToTimeline([clipDict])
                 if timelineClips:
                     print_info("Timeline item",timelineClips[0].GetName(),"created.")
@@ -129,7 +141,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.6"
+CONFORM_ALL_VERSION="2024.1.7"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -730,7 +742,7 @@ def getMpClipsFromTimeline(resolution:str = 'all'):
             
     return clips
 
-def getTimelineClipsMog(clipsList):
+def getTimelineClipsMog(clipsList, timeline_names_reels):
     """
     Arguments:
         clipsList: timeline clips list
@@ -744,7 +756,6 @@ def getTimelineClipsMog(clipsList):
     uiValues = getUIValues()
     fieldSep = uiValues[1]
     fieldCount = uiValues[2]
-    timeline_names_reels = getTimelineClipFromEditIndex()
     #pprint(timeline_names_reels)
     for clip_tuple in clipsList:
         clip = clip_tuple[0]
@@ -783,7 +794,7 @@ def getTimelineClipsMog(clipsList):
     print_info(numClips,"not corformed clips found in timeline.",numClipsEditIndex,"clips detected with edit index...")        
     return clipDict if numClips > 0 else None
 
-def getTimelineClipsOthers(clipsList,clipType):
+def getTimelineClipsOthers(clipsList,clipType,timeline_names_reels):
     """
     Arguments:
         clipsList: timeline clips list
@@ -796,7 +807,6 @@ def getTimelineClipsOthers(clipsList,clipType):
     clipDict = {}
     numClips=0
     numClipsEditIndex=0
-    timeline_names_reels = getTimelineClipFromEditIndex()
     for clip_tuple in clipsList:
         clip = clip_tuple[0]
         track = clip_tuple[1]
@@ -1218,17 +1228,21 @@ def BtConformMog(ev):
     mogPath = uiValues[0]
     maxRetries = 30
     retry = 0
-    result = 1
+    result = True
     mogDic = None
-    while retry < maxRetries and result > 0:
+    timeline_names_reels = getTimelineClipFromEditIndex()
+    while retry < maxRetries and result:
         retry+=1
         print_info(f"Retry {retry} of {maxRetries}")
-        timelineClipDict = getTimelineClipsMog(getTimelineClips())
+        timelineClipDict = getTimelineClipsMog(getTimelineClips(),timeline_names_reels)
 
         if timelineClipDict and isReelNameSelected(timelineClipDict):
             if not mogDic:
                 mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
-            result = replaceClips(timelineClipDict,mogDic)
+            replaceClips(timelineClipDict,mogDic)
+        else:
+            result = False
+        
     buttonsEnabled(True)
     print_info("Finished MOG conforming...")
     return True
@@ -1249,19 +1263,22 @@ def BtConformCameras(ev):
     buttonsEnabled(False)
     maxRetries = 30
     retry = 0
-    result = 1
+    result = True
     sonyDic = None
     sonyPath = getUIValues()[3]
+    timeline_names_reels = getTimelineClipFromEditIndex()
     while retry < maxRetries and result > 0:
         retry+=1
         print_info(f"Retry {retry} of {maxRetries}")
         timelineClips = getTimelineClips()
-        clipDict = getTimelineClipsOthers(timelineClips,clipType)
+        clipDict = getTimelineClipsOthers(timelineClips,clipType,timeline_names_reels)
         if clipDict and isReelNameSelected(clipDict):
             if not sonyDic:
                 sonyDic = getMediaFiles(sonyPath, clipDict,folderType)
-            result = replaceClips(clipDict,sonyDic)
-    
+            replaceClips(clipDict,sonyDic)
+        else:
+            result = False
+        
     buttonsEnabled(True)
     print_info("Finished",clipType,"conforming...")
     return True

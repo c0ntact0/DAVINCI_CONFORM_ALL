@@ -1,2 +1,229 @@
-/Volumes/23-CACAU/AAF Files/COLOR/00-TESTES/RUI_LOUREIRO/SEQ_EDGAR_TESTE.aaf
-/Users/rui/temp_aaf.aaf
+INFO: Processing MOG...
+INFO: Edit index have 37 records.
+INFO: Retry 1 of 30
+INFO: Video tracks in timeline: 2
+INFO: Getting clips from track 1
+INFO: Getting clips from track 2
+INFO: Getting MOG Clips...
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_110355_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_110355_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input02_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input02_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input02_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input02_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_114034_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_114034_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_115015_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_115015_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_120513_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_120513_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_121122_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_121122_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_121121_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_121121_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_123254_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_123254_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_123253_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_123253_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_123502_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_123502_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_123502_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_123502_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_124358_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_124358_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_124537_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_124537_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_130728_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_130728_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_130728_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_130728_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_131302_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_131302_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_133511_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_133511_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_133510_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_133510_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_132633_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_132633_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_132633_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_132633_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_132843_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_132843_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_155038_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_155038_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_153747_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_153747_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_153746_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_153746_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_155714_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_155714_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_155714_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_155714_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_161107_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_161107_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_164706_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_164706_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_164706_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_164706_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165248_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165248_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165247_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165247_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165247_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165247_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165248_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165248_Input03_HUILA_mDeck01
+INFO: 36 not corformed clips found in timeline. 36 clips detected with edit index...
+INFO: Getting Media Files (AMA)
+
+INFO: 29 files found in /Volumes/NEARLINE_NX/mog/HUILA/ ...
+INFO: Conforming clips...
+INFO: Trying to create timeline clip 20240829_110355_Input01_HUILA_mDeck01
+INFO: Timeline item None created.
+INFO: Clip 20240829_110355_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_113252_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_113252_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_113252_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_113252_Input02_HUILA_mDeck01
+INFO: Timeline item 20240829_113252_Input02_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_113252_Input02_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_114034_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_114034_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_114034_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_115015_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_115015_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_115015_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_120513_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_120513_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_120513_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_121122_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_121122_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_121122_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_121121_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_121121_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_121121_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_123254_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_123254_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_123254_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_123253_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_123253_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_123253_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_123502_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_123502_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_123502_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_123502_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_123502_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_123502_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_124358_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_124358_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_124358_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_124537_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_124537_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_124537_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_130728_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_130728_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_130728_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_131302_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_131302_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_131302_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_133511_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_133511_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_133511_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_133510_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_133510_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_133510_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_132633_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_132633_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_132633_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_132843_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_132843_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_132843_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_155038_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_155038_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_155038_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_153747_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_153747_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_153747_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_153746_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_153746_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_153746_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_155714_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_155714_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_155714_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_155714_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_155714_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_155714_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_161107_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_161107_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_161107_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_164706_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_164706_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_164706_Input01_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_165248_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_165248_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_165248_Input03_HUILA_mDeck01 replaced
+INFO: Trying to create timeline clip 20240829_165247_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_165247_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_165247_Input01_HUILA_mDeck01 replaced
+INFO: 29  clips conformed.
+INFO: Retry 2 of 30
+INFO: Video tracks in timeline: 2
+INFO: Getting clips from track 1
+INFO: Getting clips from track 2
+INFO: Getting MOG Clips...
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_113252_Input02_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_113252_Input02_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_130728_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_130728_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_132633_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_132633_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_164706_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_164706_Input01_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165248_Input03_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165248_Input03_HUILA_mDeck01
+WARNING: Trying to get the reel name from the edit index with timeline clip name 20240829_165247_Input01_HUILA_mDeck01
+INFO: Adding reel name from edit index: 20240829_165247_Input01_HUILA_mDeck01
+INFO: 7 not corformed clips found in timeline. 7 clips detected with edit index...
+INFO: Conforming clips...
+INFO: Clip 20240829_113252_Input01_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_113252_Input01_HUILA_mDeck01
+INFO: Timeline item None created.
+INFO: Clip 20240829_113252_Input01_HUILA_mDeck01 replaced
+INFO: Clip 20240829_113252_Input02_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_113252_Input02_HUILA_mDeck01
+INFO: Timeline item None created.
+INFO: Clip 20240829_113252_Input02_HUILA_mDeck01 replaced
+INFO: Clip 20240829_130728_Input01_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_130728_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_130728_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_130728_Input01_HUILA_mDeck01 replaced
+INFO: Clip 20240829_132633_Input01_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_132633_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_132633_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_132633_Input01_HUILA_mDeck01 replaced
+INFO: Clip 20240829_164706_Input01_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_164706_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_164706_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_164706_Input01_HUILA_mDeck01 replaced
+INFO: Clip 20240829_165248_Input03_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_165248_Input03_HUILA_mDeck01
+INFO: Timeline item 20240829_165248_Input03_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_165248_Input03_HUILA_mDeck01 replaced
+INFO: Clip 20240829_165247_Input01_HUILA_mDeck01.mxf already exists in the media folder.
+INFO: Trying to create timeline clip 20240829_165247_Input01_HUILA_mDeck01
+INFO: Timeline item 20240829_165247_Input01_HUILA_mDeck01.mxf created.
+INFO: Clip 20240829_165247_Input01_HUILA_mDeck01 replaced
+INFO: 7  clips conformed.
+INFO: Retry 3 of 30
+INFO: Video tracks in timeline: 2
+INFO: Getting clips from track 1
+INFO: Getting clips from track 2
+INFO: Getting MOG Clips...
+INFO: 0 not corformed clips found in timeline. 0 clips detected with edit index...
+INFO: Finished MOG conforming...
