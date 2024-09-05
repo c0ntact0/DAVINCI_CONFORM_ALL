@@ -64,6 +64,12 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2024.1.8
+  - Solved bug when checking if Resolve version can import/export bins for major versions greater than 18.
+  - MyMpClip class have now the correct Source In and Source Out frame fields from the Edit Index (previously it was using the Record In and Record Out)
+  - Fixed an issue with the routine implemented in version 2024.1.5. Previously, it was getting the Start TC for comparing media pool clips using the reel name from the Edit Index to get the media pool clip. This takes time, and because clips with the correct TC were also being searched unnecessarily, on very large timelines it seemed to the user that the system had crashed. Now, only clips that have the TC at 24:00:00:00 in the Edit Index are searched in the media pool.
+  - Fixed bug in the conform routines retry loop. 
+
 2024.1.7
   - Solved bug when conforming MOG media with corrupted MPEG50 proxies. When adding a high definition (AMA) clip to the timeline, one frame must be removed from the original timeline clip Right Offset.
 
