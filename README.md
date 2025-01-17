@@ -1,4 +1,5 @@
 
+Please read the ConformAllManual.pdf to more info about the script.
 
 # Install
 
