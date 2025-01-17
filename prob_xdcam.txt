@@ -1,7 +1,0 @@
-We get an error in DaVinci Resolve when we try to open MC consolidated XDCAM 50 files (OP-ATOM with XDCAM 50 essence) from Sony F5/F55 cameras. We don't have this error when we open the same type of files created with MOG recorders.
-
-Error:
-[0x28ef23000] | IO                   | ERROR | 2024-02-12 11:50:12,898 | Failed to open video file </Volumes/TESTE/Avid MediaFiles/MXF/rl-mbp.1/V01.E1EFB2D8_E302C0E302C3FV.mxf> for decoding, error: <File does not exist, or file format is not recognizable.>
-[0x28ef23000] | IO                   | ERROR | 2024-02-12 11:50:12,900 | Failed to read video track information from file <V01.E1EFB2D8_E302C0E302C3FV.mxf> in /Volumes/TESTE/Avid MediaFiles/MXF/rl-mbp.1, track 0: codec DUMMY is not supported
-
-Davinci Resolve version: 18.6.2 BUILD 2
