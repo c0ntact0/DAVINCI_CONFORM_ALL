@@ -151,7 +151,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2024.1.8"
+CONFORM_ALL_VERSION="2025.0.1"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -183,7 +183,8 @@ settingsJson = {"projects":[{
             "exportStock" : True,
             "importStock" : True,
             "copyMediaPath" : "",
-            "autoImportSourceClipsIntoMediaPool":False
+            "autoImportSourceClipsIntoMediaPool":False,
+            "avidFolders":[]
             }],
             "currentProject":"default",
             "windowGeometry": { "1": 50, "2": 50, "3": 600, "4": 410 }
@@ -288,8 +289,9 @@ def getUIValues():
         8:motionFieldCount (int),
         9:exportStock (bool),
         10:importStock (bool),
-        11:copyMediaPath (string)
-        12:autoImportSourceClipsIntoMediaPool (bool)
+        11:copyMediaPath (string),
+        12:autoImportSourceClipsIntoMediaPool (bool),
+        13:avidFolders (list)
         ) Tuple
     """
 
@@ -1848,6 +1850,21 @@ def tabsConfig(win):
     items['MyTabs'].AddTab("General")
     items['MyTabs'].AddTab("Settings")
 
+#TODO
+def treeAvidFoldersConfig(win):
+    items = win.GetItems()
+    tree = items['treeAvidFolders']
+    tree.Clear()
+    hdr = tree.NewItem()
+    hdr.Text[0] = "Avid Folders"
+    tree.SetHeaderItem(hdr)
+    tree.ColumnCount = 1
+    extensions = settingsJson.get('fileExtensions',[])
+    for ext in extensions:
+        row = tree.NewItem()
+        row.Text[0] = ext
+        tree.AddTopLevelItem(row)
+
 def treeExtensionsConfig(win):
     items = win.GetItems()
     tree = items['treeExtensions']
@@ -1965,12 +1982,24 @@ def MainWindow():
         ]
     )
     
-    avidPathLayout = ui.HGroup({'Weight': 0.0},
+    avidPathLayout = ui.VGroup({'Weight:2.0'},
+    [ ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'AVID Path','FixedSize':[60,30]}),
             ui.LineEdit({'ID':'txtAvidPath','Text':settings['avidPath'],'MinimumSize':[400,30]}),
-            ui.Button({'ID':'btBrowseAvid','Text':'Browse','Weight': 0.0})
+            ui.Button({'ID':'btBrowseAvid','Text':'Browse','Weight': 0.0}),
+            
         ]
-    )
+    ),ui.HGroup({'Weight': 10.0},[
+            ui.Tree({
+			"ID": "treeAvidFolders",
+			"SortingEnabled": True,'SelectionMode':'ExtendedSelection','Weight': 1.0})
+            ,
+            ui.VGroup({'Weight': 0.0},[
+                ui.Button({'ID':'btAddAvidFolder','Text':'Add','Weight': 0.0}),
+                ui.Button({'ID':'btRemoveRemoveAvidFolder','Text':'Remove','Weight': 0.0}),
+            ])
+            ])
+    ])
     
     """
     motionPathLayout = ui.HGroup(

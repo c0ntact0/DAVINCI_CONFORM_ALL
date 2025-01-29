@@ -65,6 +65,10 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2025.1.0
+  - Implemented folders lists for all media types (MOG, SONY/OTHER and Avid).
+  - The Avid MediaFiles/UME folder is no longer scanned automatically and needed to be added in the Avid Folders list.
+
 2025.0.1
   - Solved a problem introduced by the DaVinci Resolve version >= 19.1. The problem is related with the modification made in the ConformAll version 2024.1.7. Blackmagic solved the problem with the timeline clip offset, and now the frame is not removed if the DaVinci Resolve version is >= 19.1.
 
