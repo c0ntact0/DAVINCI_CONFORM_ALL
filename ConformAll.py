@@ -79,6 +79,8 @@ class MyMpClip():
         return self._properties["Clip Name"]
     
     def ReplaceClip(self,filename:str):
+        version_down_19_1 = int(str(RESOLVE_VERSION[0])+str(RESOLVE_VERSION[1])) < 191
+        
         ret = True
         currentFolder = getMediaFolder(currentTimeline.GetName())
         binFolder = getMediaFolder("media",parent = currentFolder)
@@ -107,7 +109,7 @@ class MyMpClip():
                     clipDict = {
                         "mediaPoolItem":self._mpClip,
                         "startFrame":self._sourceIn,
-                        "endFrame":self._sourceOut-1,
+                        "endFrame":self._sourceOut-(1 if version_down_19_1 else 0),
                         "mediaType":1,
                         "trackIndex":self._track,
                         "recordFrame":self._recordFrame
