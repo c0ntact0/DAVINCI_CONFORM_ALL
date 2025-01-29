@@ -66,7 +66,7 @@ The settings file is created by the ConformAll.py script.
 
 # Versions
 2025.0.1
-  - Solved problem introduced with the DaVinci Resolve version >= 19.1. The problem was related with the modification in the ConformAll version 2024.1.7. Blackmagic solved the problem with the timeline clip offset, and now the frame is not removed if the DaVinci Resolve version is >= 19.1. 
+  - Solved a problem introduced with the DaVinci Resolve version >= 19.1. The problem was related with the modification in the ConformAll version 2024.1.7. Blackmagic solved the problem with the timeline clip offset, and now the frame is not removed if the DaVinci Resolve version is >= 19.1. 
 
 2024.1.8
   - Solved bug when checking if Resolve version can import/export bins for major versions greater than 18.
