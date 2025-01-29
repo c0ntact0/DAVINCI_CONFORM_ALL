@@ -1126,7 +1126,7 @@ def isReelNameSelected(clipDict):
     "-- Embedding in source clip file")
     
     return False
-    
+
 def isImportExportDrbPossible():
     version = str(RESOLVE_VERSION[0])+str(RESOLVE_VERSION[1])
     #print(version)

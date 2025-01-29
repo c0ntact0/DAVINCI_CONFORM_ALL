@@ -65,6 +65,9 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2025.0.1
+  - Solved problem introduced with the DaVinci Resolve version >= 19.1. The problem was related with the modification in the ConformAll version 2024.1.7. Blackmagic solved the problem with the timeline clip offset, and now the frame is not removed if the DaVinci Resolve version is >= 19.1. 
+
 2024.1.8
   - Solved bug when checking if Resolve version can import/export bins for major versions greater than 18.
   - MyMpClip class have now the correct Source In and Source Out frame fields from the Edit Index (previously it was using the Record In and Record Out)
