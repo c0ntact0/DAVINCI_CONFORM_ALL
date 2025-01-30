@@ -1711,90 +1711,78 @@ def OnTabChanged(ev):
     items = win.GetItems()
     items['MyStack'].CurrentIndex  = ev['Index']
 
-def OnMogFoldersList(ev):
+def OnMediaFoldersList(ev):
+    '''
+        Generic event handler for media tree folders events.
+        To this work, all buttons must have the same prefixes, e.g. btAdd..., btRemove...,etc.        
+    '''
+
+    # dict to map buttons to media types
+    ev_media_type = {
+        'btAddMogFolder':'mog',
+        'btRemoveMogFolder':'mog',
+        'btAddAvidFolder':'avid',
+        'btRemoveAvidFolder':'avid',
+        'btAddSonyFolder':'sony',
+        'btRemoveSonyFolder':'sony',
+    }
+    
+    # dict to map media types to parameters
+    param = {
+        'mog':{
+            'ui_value':0,
+            'title':"Mog Folders",
+            'treeObject':'treeMogFolders',
+            'settingsKey':'mogFolders'
+        },
+        'avid':{
+            'ui_value':5,
+            'title':"Avid Folders",
+            'treeObject':'treeAvidFolders',
+            'settingsKey':'avidFolders'
+        },
+        'sony':{
+            'ui_value':3,
+            'title':"Sony Folders",
+            'treeObject':'treeSonyFolders',
+            'settingsKey':'sonyFolders'
+        }
+    }
+    
     items = win.GetItems()
     who = ev['who']
-    if who == 'btAddMogFolder':
-        folder = getUIValues()[0]
+    mediaType = ev_media_type.get(who)
+    paramType = param[mediaType]
+    title = paramType['title']
+    settingsKey = paramType['settingsKey']
+    treeObject = paramType['treeObject']
+    if who.startswith('btAdd'):
+        
+        folder = getUIValues()[paramType['ui_value']]
         folder = os.path.normpath(folder)
         if not os.path.exists(folder):
             print_error("Folder",folder,"does not exist!")
             return
-        currentList = settings.get('mogFolders',[])
+        currentList = settings.get(settingsKey,[])
         if len(currentList) == 0:
-            settings['mogFolders'] = []
+            settings[settingsKey] = []
         if folder not in currentList:
-            settings['mogFolders'].append(folder)
-            treeMogFoldersConfig(win)
+            settings[settingsKey].append(folder)
+            treeMediaFoldersConfig(win,title,treeObject,settingsKey)
             saveSetting()
-    elif who == 'btRemoveMogFolder':
-        tree = items['treeMogFolders']
+    elif who.startswith('btRemove'):
+        tree = items[treeObject]
         haveSelecteds = False
         for it in tree.SelectedItems().values():
             haveSelecteds=True
             folder = it.Text[0]
-            settings['mogFolders'].remove(folder)
+            settings[settingsKey].remove(folder)
         
         if haveSelecteds:
-            treeMogFoldersConfig(win)
+            treeMediaFoldersConfig(win,title,treeObject,settingsKey)
             saveSetting()
-  
-def OnSonyFoldersList(ev):
-    items = win.GetItems()
-    who = ev['who']
-    if who == 'btAddSonyFolder':
-        folder = getUIValues()[3]
-        folder = os.path.normpath(folder)
-        if not os.path.exists(folder):
-            print_error("Folder",folder,"does not exist!")
-            return
-        currentList = settings.get('sonyFolders',[])
-        if len(currentList) == 0:
-            settings['sonyFolders'] = []
-        if folder not in currentList:
-            settings['sonyFolders'].append(folder)
-            treeSonyFoldersConfig(win)
-            saveSetting()
-    elif who == 'btRemoveSonyFolder':
-        tree = items['treeSonyFolders']
-        haveSelecteds = False
-        for it in tree.SelectedItems().values():
-            haveSelecteds=True
-            folder = it.Text[0]
-            settings['sonyFolders'].remove(folder)
-        
-        if haveSelecteds:
-            treeSonyFoldersConfig(win)
-            saveSetting()
-            
-def OnAvidFoldersList(ev):
-    items = win.GetItems()
-    who = ev['who']
-    if who == 'btAddAvidFolder':
-        folder = getUIValues()[5]
-        folder = os.path.normpath(folder)
-        if not os.path.exists(folder):
-            print_error("Folder",folder,"does not exist!")
-            return
-        currentList = settings.get('avidFolders',[])
-        if len(currentList) == 0:
-            settings['avidFolders'] = []
-        if folder not in currentList:
-            settings['avidFolders'].append(folder)
-            treeAvidFoldersConfig(win)
-            saveSetting()
-            
-    elif who == 'btRemoveAvidFolder':
-        tree = items['treeAvidFolders']
-        haveSelecteds = False
-        for it in tree.SelectedItems().values():
-            haveSelecteds=True
-            folder = it.Text[0]
-            settings['avidFolders'].remove(folder)
-        
-        if haveSelecteds:
-            treeAvidFoldersConfig(win)
-            saveSetting()
+        else:
+            print_warning("Please select the folder(s) to remove!")
 
 def OnExtensionsList(ev):
     items = win.GetItems()
@@ -1953,44 +1941,26 @@ def tabsConfig(win):
     items['MyTabs'].AddTab("Settings")
 
 #TODO
-def treeMogFoldersConfig(win):
+def treeMediaFoldersConfig(win,treeTitle:str,treeObject:str,settingsKey:str):
+    '''
+        Generic method to configure media folders tree 
+        
+        Arguments:
+        
+            win: the window object
+            treeTitle: the title for the tree
+            treeObject: the tree object name
+            settingsKey: the key of the json object where the folders list is stored
+    '''
     items = win.GetItems()
-    tree = items['treeMogFolders']
+    tree = items[treeObject]
     tree.Clear()
     hdr = tree.NewItem()
-    hdr.Text[0] = "Mog Folders"
+    hdr.Text[0] = treeTitle
     tree.SetHeaderItem(hdr)
     tree.ColumnCount = 1
-    avidFolders = settings.get('mogFolders',[])
-    for f in avidFolders:
-        row = tree.NewItem()
-        row.Text[0] = f
-        tree.AddTopLevelItem(row)
-
-def treeSonyFoldersConfig(win):
-    items = win.GetItems()
-    tree = items['treeSonyFolders']
-    tree.Clear()
-    hdr = tree.NewItem()
-    hdr.Text[0] = "Sony Folders"
-    tree.SetHeaderItem(hdr)
-    tree.ColumnCount = 1
-    avidFolders = settings.get('sonyFolders',[])
-    for f in avidFolders:
-        row = tree.NewItem()
-        row.Text[0] = f
-        tree.AddTopLevelItem(row)
-
-def treeAvidFoldersConfig(win):
-    items = win.GetItems()
-    tree = items['treeAvidFolders']
-    tree.Clear()
-    hdr = tree.NewItem()
-    hdr.Text[0] = "Avid Folders"
-    tree.SetHeaderItem(hdr)
-    tree.ColumnCount = 1
-    avidFolders = settings.get('avidFolders',[])
-    for f in avidFolders:
+    folders = settings.get(settingsKey,[])
+    for f in folders:
         row = tree.NewItem()
         row.Text[0] = f
         tree.AddTopLevelItem(row)
@@ -2301,9 +2271,9 @@ def MainWindow():
     treeCameraFoldersConfig(win)
     treeCodecsConfig(win)
     treeProxyCodecsConfig(win)
-    treeAvidFoldersConfig(win)
-    treeSonyFoldersConfig(win)
-    treeMogFoldersConfig(win)
+    treeMediaFoldersConfig(win,"Avid Folders","treeAvidFolders","avidFolders")
+    treeMediaFoldersConfig(win,"Sony Folders","treeSonyFolders","sonyFolders")
+    treeMediaFoldersConfig(win,"Mog Folders","treeMogFolders","mogFolders")
     
     win.On.btConformMog.Clicked = BtConformMog
     win.On.btConformSony.Clicked = BtConformCameras
@@ -2338,12 +2308,12 @@ def MainWindow():
     win.On.btRemoveProxyCodec.Clicked = OnProxyCodecsList
     win.On.btSendToHigh.Clicked = OnProxyCodecsList
     
-    win.On.btAddAvidFolder.Clicked = OnAvidFoldersList
-    win.On.btRemoveAvidFolder.Clicked = OnAvidFoldersList
-    win.On.btAddMogFolder.Clicked = OnMogFoldersList
-    win.On.btRemoveMogFolder.Clicked = OnMogFoldersList
-    win.On.btAddMogFolder.Clicked = OnMogFoldersList
-    win.On.btRemoveMogFolder.Clicked = OnMogFoldersList
+    win.On.btAddAvidFolder.Clicked = OnMediaFoldersList
+    win.On.btRemoveAvidFolder.Clicked = OnMediaFoldersList
+    win.On.btAddMogFolder.Clicked = OnMediaFoldersList
+    win.On.btRemoveMogFolder.Clicked = OnMediaFoldersList
+    win.On.btAddSonyFolder.Clicked = OnMediaFoldersList
+    win.On.btRemoveSonyFolder.Clicked = OnMediaFoldersList
     
     win.On.mainWindow.Close = OnClose
    
