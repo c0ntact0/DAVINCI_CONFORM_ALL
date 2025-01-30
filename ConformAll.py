@@ -151,7 +151,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2025.0.1"
+CONFORM_ALL_VERSION="2025.1.0"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -183,8 +183,7 @@ settingsJson = {"projects":[{
             "exportStock" : True,
             "importStock" : True,
             "copyMediaPath" : "",
-            "autoImportSourceClipsIntoMediaPool":False,
-            "avidFolders":[]
+            "autoImportSourceClipsIntoMediaPool":False
             }],
             "currentProject":"default",
             "windowGeometry": { "1": 50, "2": 50, "3": 600, "4": 410 }
@@ -311,6 +310,7 @@ def getUIValues():
             win.Find('ckAutoImportSourceClipsIntoMediaPool').Checked                       
             )
 
+# deprecated
 def getEdgeProxyPath():
     avidPath = getUIValues()[5]
     avidPath = os.path.split(avidPath)
@@ -322,6 +322,7 @@ def getEdgeProxyPath():
     
     return None
 
+# deprecated
 def getUMEPath():
     avidPath = getUIValues()[5]
     avidPath = os.path.split(avidPath)
@@ -330,6 +331,14 @@ def getUMEPath():
     umePath = os.path.join(avidPath[0],'UME')
 #    if os.path.isdir(umePath):
     return umePath
+
+def getAvidMXFFolder():
+    
+    for folder in settings.get('avidFolders',[]):
+        if folder.endswith("Avid MediaFiles" + os.sep + "MXF"):
+            return folder
+        
+    print_error("Avid folders list does not contains a Avid MediaFiles" + os.sep + "MXF folder.")
     
 def importIngestSettings(path:str,importToKey:str,importFromKey:str):
     if os.path.exists(path):
@@ -381,7 +390,7 @@ def getAvidMedia(folderPaths : list):
     print_info(len(avidFiles)," Avid MediaFiles found.")
     return importClips(avidFiles)
 
-def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
+def getMediaFiles(foldersPaths:list, clipDict:dict, folderType:list):
     """
     Get ama files reel names as keys and paths as values.
     all OTHER folderType(s) must exist in the Camera Folders list
@@ -395,36 +404,43 @@ def getMediaFiles(folderPath:str, clipDict:dict, folderType:list):
     Return {"reelName":"filename",...}
     """
     print_info("Getting Media Files (AMA)")
+    print_info("Folders to search:",foldersPaths)
     mimes=["." + x.upper() for x in settingsJson.get('fileExtensions',[])]
     amaFiles = {}
     numFiles=0
     uiValues = getUIValues()
     fieldSep = uiValues[1] if "ama" in folderType else None
     fieldCount = uiValues[2] if "ama" in folderType else None
-    if not os.path.exists(folderPath):
-        print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
-        return amaFiles
+    existingFolders = []
+    for folderPath in foldersPaths:
+        if not os.path.exists(folderPath):
+            print_error("Folder",folderPath,"does not exist. Do you forget to mount any drive?")
+        else:
+            existingFolders.append(folderPath)
+            
+    if len(existingFolders) == 0: return amaFiles
     ts = time.time()
-    for root, dirs, files in os.walk(folderPath):
-        cameraFolderExits = False
-        for c in folderType:
-            rootArray = root.split(os.path.sep) # garante igualdade na palavra e não em parte
-            if c in rootArray:
-                cameraFolderExits = True
-                break
-        for name in files:
-            filename = os.path.join(root,name)
-            _,ext = os.path.splitext(filename)
-            if cameraFolderExits and ext.upper() in mimes:
-                fileReel = extractReelName(name, fieldSep,fieldCount)
-                if clipDict.get(fileReel):
-                    amaFiles[fileReel] = filename
-                    numFiles+=1
+    for folderPath in existingFolders:
+        for root, dirs, files in os.walk(folderPath):
+            cameraFolderExits = False
+            for c in folderType:
+                rootArray = root.split(os.path.sep) # garante igualdade na palavra e não em parte
+                if c in rootArray:
+                    cameraFolderExits = True
+                    break
+            for name in files:
+                filename = os.path.join(root,name)
+                _,ext = os.path.splitext(filename)
+                if cameraFolderExits and ext.upper() in mimes:
+                    fileReel = extractReelName(name, fieldSep,fieldCount)
+                    if clipDict.get(fileReel):
+                        amaFiles[fileReel] = filename
+                        numFiles+=1
 
-        now = time.time()
-        if ts + 1. < now:
-            print("",end=".")
-            ts = now
+            now = time.time()
+            if ts + 1. < now:
+                print("",end=".")
+                ts = now
 
 
     print()                
@@ -581,7 +597,7 @@ def importClips(files):
     #print(files[0] if len(files) > 0  else "None")
         
     files2Process=[]
-    blacklist = loadBlacklistFiles(os.path.join(getUIValues()[5],BLACKLIST_FILES))
+    blacklist = loadBlacklistFiles(os.path.join(getAvidMXFFolder(),BLACKLIST_FILES))
     print_info(len(blacklist),"files in blacklist.")
     ts = time.time()
     for file in files:
@@ -653,7 +669,7 @@ def createBlackListFiles(importedClips:list,files2Process:list,blacklist_par:lis
     """
     localFiles2Process = files2Process.copy()
     blacklist = blacklist_par
-    blackListFileName = os.path.join(getUIValues()[5],BLACKLIST_FILES)
+    blackListFileName = os.path.join(getAvidMXFFolder(),BLACKLIST_FILES)
     if not blacklist:
         blacklist = loadBlacklistFiles(blackListFileName)
     
@@ -1241,7 +1257,7 @@ def BtConformMog(ev):
     print_info("Processing MOG...")
     buttonsEnabled(False)
     uiValues = getUIValues()
-    mogPath = uiValues[0]
+    #mogPath = uiValues[0]
     maxRetries = 30
     retry = 0
     result = True
@@ -1254,7 +1270,7 @@ def BtConformMog(ev):
 
         if timelineClipDict and isReelNameSelected(timelineClipDict):
             if not mogDic:
-                mogDic = getMediaFiles(mogPath,timelineClipDict,["ama"])
+                mogDic = getMediaFiles(settings.get('mogFolders',[]),timelineClipDict,["ama"])
             result = replaceClips(timelineClipDict,mogDic) > 0
         else:
             result = False
@@ -1281,7 +1297,7 @@ def BtConformCameras(ev):
     retry = 0
     result = True
     sonyDic = None
-    sonyPath = getUIValues()[3]
+    #sonyPath = getUIValues()[3]
     timeline_names_reels = getTimelineClipFromEditIndex()
     while retry < maxRetries and result:
         retry+=1
@@ -1290,7 +1306,7 @@ def BtConformCameras(ev):
         clipDict = getTimelineClipsOthers(timelineClips,clipType,timeline_names_reels)
         if clipDict and isReelNameSelected(clipDict):
             if not sonyDic:
-                sonyDic = getMediaFiles(sonyPath, clipDict,folderType)
+                sonyDic = getMediaFiles(settings.get('sonyFolders',[]), clipDict,folderType)
             result = replaceClips(clipDict,sonyDic) > 0
         else:
             result = False
@@ -1351,7 +1367,7 @@ def BtImportAAF(ev):
             "Yes, cancel the operation","No, continue with the operation",haveRejectButton=True)
         if accept:
             return
-    stockBinPath = os.path.join(getUIValues()[5],STOCK_DRB)
+    stockBinPath = os.path.join(getAvidMXFFolder(),STOCK_DRB)
     if not isEditPage():
         return
     if isOnStockFolder():
@@ -1375,7 +1391,7 @@ def BtImportAAF(ev):
     autoImportSourceClipsIntoMediaPool=values[12]
     stock = None
     if not autoImportSourceClipsIntoMediaPool:
-        stock = getAvidMedia([values[5],getEdgeProxyPath(),getUMEPath()])
+        stock = getAvidMedia(settings['avidFolders'])
         if not stock:
             return
         clips = stock.GetClipList()
@@ -1665,7 +1681,8 @@ def OnBrowse(ev):
         txt = win.Find('txtAvidPath')
         newPath = fu.RequestDir(txt.Text)
         if newPath:
-            if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep):
+            if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep) \
+                or newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'UME' + os.sep):
                 txt.Text = newPath
             else:
                 print_error('Wrong path')
@@ -1693,6 +1710,91 @@ def OnBrowse(ev):
 def OnTabChanged(ev):
     items = win.GetItems()
     items['MyStack'].CurrentIndex  = ev['Index']
+
+def OnMogFoldersList(ev):
+    items = win.GetItems()
+    who = ev['who']
+    if who == 'btAddMogFolder':
+        folder = getUIValues()[0]
+        folder = os.path.normpath(folder)
+        if not os.path.exists(folder):
+            print_error("Folder",folder,"does not exist!")
+            return
+        currentList = settings.get('mogFolders',[])
+        if len(currentList) == 0:
+            settings['mogFolders'] = []
+        if folder not in currentList:
+            settings['mogFolders'].append(folder)
+            treeMogFoldersConfig(win)
+            saveSetting()
+    elif who == 'btRemoveMogFolder':
+        tree = items['treeMogFolders']
+        haveSelecteds = False
+        for it in tree.SelectedItems().values():
+            haveSelecteds=True
+            folder = it.Text[0]
+            settings['mogFolders'].remove(folder)
+        
+        if haveSelecteds:
+            treeMogFoldersConfig(win)
+            saveSetting()
+  
+def OnSonyFoldersList(ev):
+    items = win.GetItems()
+    who = ev['who']
+    if who == 'btAddSonyFolder':
+        folder = getUIValues()[3]
+        folder = os.path.normpath(folder)
+        if not os.path.exists(folder):
+            print_error("Folder",folder,"does not exist!")
+            return
+        currentList = settings.get('sonyFolders',[])
+        if len(currentList) == 0:
+            settings['sonyFolders'] = []
+        if folder not in currentList:
+            settings['sonyFolders'].append(folder)
+            treeSonyFoldersConfig(win)
+            saveSetting()
+    elif who == 'btRemoveSonyFolder':
+        tree = items['treeSonyFolders']
+        haveSelecteds = False
+        for it in tree.SelectedItems().values():
+            haveSelecteds=True
+            folder = it.Text[0]
+            settings['sonyFolders'].remove(folder)
+        
+        if haveSelecteds:
+            treeSonyFoldersConfig(win)
+            saveSetting()
+            
+def OnAvidFoldersList(ev):
+    items = win.GetItems()
+    who = ev['who']
+    if who == 'btAddAvidFolder':
+        folder = getUIValues()[5]
+        folder = os.path.normpath(folder)
+        if not os.path.exists(folder):
+            print_error("Folder",folder,"does not exist!")
+            return
+        currentList = settings.get('avidFolders',[])
+        if len(currentList) == 0:
+            settings['avidFolders'] = []
+        if folder not in currentList:
+            settings['avidFolders'].append(folder)
+            treeAvidFoldersConfig(win)
+            saveSetting()
+            
+    elif who == 'btRemoveAvidFolder':
+        tree = items['treeAvidFolders']
+        haveSelecteds = False
+        for it in tree.SelectedItems().values():
+            haveSelecteds=True
+            folder = it.Text[0]
+            settings['avidFolders'].remove(folder)
+        
+        if haveSelecteds:
+            treeAvidFoldersConfig(win)
+            saveSetting()
 
 def OnExtensionsList(ev):
     items = win.GetItems()
@@ -1851,6 +1953,34 @@ def tabsConfig(win):
     items['MyTabs'].AddTab("Settings")
 
 #TODO
+def treeMogFoldersConfig(win):
+    items = win.GetItems()
+    tree = items['treeMogFolders']
+    tree.Clear()
+    hdr = tree.NewItem()
+    hdr.Text[0] = "Mog Folders"
+    tree.SetHeaderItem(hdr)
+    tree.ColumnCount = 1
+    avidFolders = settings.get('mogFolders',[])
+    for f in avidFolders:
+        row = tree.NewItem()
+        row.Text[0] = f
+        tree.AddTopLevelItem(row)
+
+def treeSonyFoldersConfig(win):
+    items = win.GetItems()
+    tree = items['treeSonyFolders']
+    tree.Clear()
+    hdr = tree.NewItem()
+    hdr.Text[0] = "Sony Folders"
+    tree.SetHeaderItem(hdr)
+    tree.ColumnCount = 1
+    avidFolders = settings.get('sonyFolders',[])
+    for f in avidFolders:
+        row = tree.NewItem()
+        row.Text[0] = f
+        tree.AddTopLevelItem(row)
+
 def treeAvidFoldersConfig(win):
     items = win.GetItems()
     tree = items['treeAvidFolders']
@@ -1859,10 +1989,10 @@ def treeAvidFoldersConfig(win):
     hdr.Text[0] = "Avid Folders"
     tree.SetHeaderItem(hdr)
     tree.ColumnCount = 1
-    extensions = settingsJson.get('fileExtensions',[])
-    for ext in extensions:
+    avidFolders = settings.get('avidFolders',[])
+    for f in avidFolders:
         row = tree.NewItem()
-        row.Text[0] = ext
+        row.Text[0] = f
         tree.AddTopLevelItem(row)
 
 def treeExtensionsConfig(win):
@@ -1959,12 +2089,23 @@ def MainWindow():
                                    ])
         ])
     
-    mogPathLayout = ui.HGroup({'Weight': 0.0},
+    mogPathLayout =ui.VGroup({'Weight:2.0'},
+    [ ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'MOG Path','FixedSize':[70,30]}),
             ui.LineEdit({'ID':'txtMogPath','Text':settings['mogPath'],'MinimumSize':[400,30]}),
             ui.Button({'ID':'btBrowseMog','Text':'Browse','Weight': 0.0})         
         ]
-    )
+    ),ui.HGroup({'Weight': 10.0},[
+            ui.Tree({
+			"ID": "treeMogFolders",
+			"SortingEnabled": True,'SelectionMode':'ExtendedSelection','Weight': 1.0})
+            ,
+            ui.VGroup({'Weight': 0.0},[
+                ui.Button({'ID':'btAddMogFolder','Text':'Add','Weight': 0.0}),
+                ui.Button({'ID':'btRemoveMogFolder','Text':'Remove','Weight': 0.0}),
+            ])
+            ])
+    ])
 
     extractionLayout = ui.HGroup(
         [   ui.Label({'Text':'Field Separator','FixedSize':[100,30]}),
@@ -1975,12 +2116,23 @@ def MainWindow():
         ]
     )
     
-    sonyPathLayout = ui.HGroup({'Weight': 0.0},
+    sonyPathLayout = ui.VGroup({'Weight:2.0'},
+    [ ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'SONY/OTHER Path','FixedSize':[75,30]}),
             ui.LineEdit({'ID':'txtSonyPath','Text':settings['sonyPath'],'MinimumSize':[400,30]}),
             ui.Button({'ID':'btBrowseSony','Text':'Browse','Weight': 0.0})
         ]
-    )
+    ),ui.HGroup({'Weight': 10.0},[
+            ui.Tree({
+			"ID": "treeSonyFolders",
+			"SortingEnabled": True,'SelectionMode':'ExtendedSelection','Weight': 1.0})
+            ,
+            ui.VGroup({'Weight': 0.0},[
+                ui.Button({'ID':'btAddSonyFolder','Text':'Add','Weight': 0.0}),
+                ui.Button({'ID':'btRemoveSonyFolder','Text':'Remove','Weight': 0.0}),
+            ])
+            ])
+    ])
     
     avidPathLayout = ui.VGroup({'Weight:2.0'},
     [ ui.HGroup({'Weight': 0.0},
@@ -1996,7 +2148,7 @@ def MainWindow():
             ,
             ui.VGroup({'Weight': 0.0},[
                 ui.Button({'ID':'btAddAvidFolder','Text':'Add','Weight': 0.0}),
-                ui.Button({'ID':'btRemoveRemoveAvidFolder','Text':'Remove','Weight': 0.0}),
+                ui.Button({'ID':'btRemoveAvidFolder','Text':'Remove','Weight': 0.0}),
             ])
             ])
     ])
@@ -2141,7 +2293,7 @@ def MainWindow():
         
     geoDic = settingsJson['windowGeometry']
     geometry = [geoDic['1'],geoDic['2'],geoDic['3'],geoDic['4']]
-    win = dispatcher.AddWindow({'WindowTitle':'ConformAll (Rui Loureiro 2024)','ID':'mainWindow','Geometry':geometry},vLayoutMainWindow)
+    win = dispatcher.AddWindow({'WindowTitle':'ConformAll (Rui Loureiro 2025)','ID':'mainWindow','Geometry':geometry},vLayoutMainWindow)
     #pprint(win.GetItems())
     
     tabsConfig(win)
@@ -2149,6 +2301,10 @@ def MainWindow():
     treeCameraFoldersConfig(win)
     treeCodecsConfig(win)
     treeProxyCodecsConfig(win)
+    treeAvidFoldersConfig(win)
+    treeSonyFoldersConfig(win)
+    treeMogFoldersConfig(win)
+    
     win.On.btConformMog.Clicked = BtConformMog
     win.On.btConformSony.Clicked = BtConformCameras
     win.On.btConformOthers.Clicked = BtConformCameras
@@ -2181,6 +2337,13 @@ def MainWindow():
     win.On.btAddProxyCodec.Clicked = OnProxyCodecsList
     win.On.btRemoveProxyCodec.Clicked = OnProxyCodecsList
     win.On.btSendToHigh.Clicked = OnProxyCodecsList
+    
+    win.On.btAddAvidFolder.Clicked = OnAvidFoldersList
+    win.On.btRemoveAvidFolder.Clicked = OnAvidFoldersList
+    win.On.btAddMogFolder.Clicked = OnMogFoldersList
+    win.On.btRemoveMogFolder.Clicked = OnMogFoldersList
+    win.On.btAddMogFolder.Clicked = OnMogFoldersList
+    win.On.btRemoveMogFolder.Clicked = OnMogFoldersList
     
     win.On.mainWindow.Close = OnClose
    
