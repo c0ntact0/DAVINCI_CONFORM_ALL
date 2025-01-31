@@ -1425,7 +1425,7 @@ def isReelNameSelected(clipDict):
     "Please goto File->Project Settings...->General Options\n" \
     "In the Conform Options section select:\n" \
     "- Assist using reel names from the:\n" \
-    "-- Embedding in source clip file","Continue",haveRejectButton=True)
+    "-- Embedding in source clip file","Continue","Cancel the conform process",haveRejectButton=True)
     
     return ret
 
