@@ -65,6 +65,11 @@ The settings file is a json file named ConformAll.json.
 The settings file is created by the ConformAll.py script.
 
 # Versions
+2025.2.0
+  - The activate reel name alert dialog, give the possibility to continue the conform process without the reel name activated, or with the reel name activate without any clip that have reel name.
+  - While getting the files from the High Resolution locations, if exists than one file with the same reel name (or filename), the script will prefer the file that the codec exits in the High Resolution Codecs list. This allows to have a proxy file and a high resolution file in the same location (e.g a Sony F55 camera recording 4K and XDCAM 50 at the same time, with the same filenames).
+  - More python docstrings added.
+
 2025.1.0
   - Implemented folders lists for all media types (MOG, SONY/OTHER and Avid).
   - The Avid MediaFiles/UME folder is no longer scanned automatically and needed to be added in the Avid Folders list.

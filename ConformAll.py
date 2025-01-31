@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# See the README.txt for install
+# See the README.md for install
 import os
 import json
 import csv
@@ -17,13 +17,19 @@ from multiprocessing import resource_tracker
 
 class MyMpClip():
     
+    '''
+        This class creates a virtual media clip object to use when the imported timeline refer to a clip that is linked to corrupted
+        media or the media does not exist at all. This class uses the "Edit Index" of DaVinci Resolve to create the virtual clip.
+        If the High Resolution media exists at conform time, that media will come online.
+    '''
+    
     def __init__(self,
                  file_name:str,
                  video_codec:str,
                  name:str,
                  recordFrame:int, # timeline clip position frame 
                  sourceIn:int, # clip cut in frame
-                 sourceOut:int, # clip cut ou frame
+                 sourceOut:int, # clip cut out frame
                  startTC:str, # clip start tc
                  endTC:str, # clip end tc
                  track:int) -> None:
@@ -49,6 +55,9 @@ class MyMpClip():
         self._timelineClip = clip
     
     def GetClipProperty(self,key:str=None):
+        '''
+            Encapsulation of the API GetClipProperty method.
+        '''
         if isinstance(self._mpClip,MyMpClip):
             if key:
                 return self._properties.get(key,"")
@@ -58,12 +67,19 @@ class MyMpClip():
             return self._mpClip.GetClipProperty(key)
         
     def SetClipProperty(self,key:str,value:any):
+        '''
+            Encapsulation of the API SetClipProperty method.
+        '''
         if isinstance(self._mpClip,MyMpClip):
             self._properties[key] = value
         else:
             self._mpClip.SetClipProperty(key,value)
             
     def SetClipColor(self,colorName):
+        '''
+            This method encapsulates the API SetClipColor method, but the color is always "Apricot",
+            no matters what color is send in the argument. 
+        '''
         colorName = "Apricot"
         if isinstance(self._mpClip,MyMpClip):
             self._properties["Clip Color"] = colorName
@@ -79,6 +95,10 @@ class MyMpClip():
         return self._properties["Clip Name"]
     
     def ReplaceClip(self,filename:str):
+        '''
+            This is the encapsulation of the API ReplaceClip method, and do the same thing using this
+            virtual clip object.
+        '''
         version_down_19_1 = int(str(RESOLVE_VERSION[0])+str(RESOLVE_VERSION[1])) < 191
         
         ret = True
@@ -138,7 +158,6 @@ class MyMpClip():
 def print_error(*args,sep: str = " ", end: str = "\n"):
     print('ERROR:','',end='')
     print(*args,sep=sep,end=end)
-    
    
 def print_warning(*args,sep: str = " ", end: str = "\n"):
     print('WARNING:','',end='')
@@ -151,7 +170,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2025.1.0"
+CONFORM_ALL_VERSION="2025.2.0"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -165,10 +184,10 @@ if not os.path.exists(userPath):
     exit(1)
 else:
     print_info("User HOME is:",userPath)
-    
+
+# application settings
 settingsFile = "ConformAll.json"
 settingsPath = os.path.join(userPath,"Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Settings")
-
 settingsJson = {"projects":[{
             "project": "default",
             "mogPath" : "",
@@ -209,6 +228,9 @@ drScriptsPath="/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fu
 copyFilesPath = os.path.join(drScriptsPath,"copy_files.py")
 
 def loadSettings():
+    '''
+        Get global settings.
+    '''
     global currentHouseProject
     global settingsJson
     path = os.path.join(settingsPath,settingsFile)
@@ -223,6 +245,9 @@ def loadSettings():
             json.dump(settingsJson, outfile)
     
 def getProjects():
+    '''
+        Get home projects list.
+    '''
     projects = []
     for obj in settingsJson["projects"]:
         projects.append(obj['project'])
@@ -230,6 +255,13 @@ def getProjects():
     return projects
 
 def getSettings(project):
+    '''
+        Get some home project settings.
+        Updates the global variable "settings".
+        
+        Arguments:
+            project: the home project to get the settings
+    '''
     global settings
     for obj in settingsJson["projects"]:
         if obj['project'] == project:
@@ -240,6 +272,19 @@ def getSettings(project):
 
     
 def saveSetting(project = None,rename = False):
+    '''
+        Save the application settings.
+        
+        Arguments:
+        
+            project: the name of the home project to save. if present, the project settings
+            are saved. If not present only the application settings are saved.
+            rename: if True, the project will be renamed with the name currently in the 
+            House Project UI text field (not the one selected in the pulldown).
+            
+            This means that the user pressed the "Rename" button.
+             
+    '''
     global settingsJson
     settingsJson['currentProject'] = cbProjects.CurrentText 
     settingsJson['windowGeometry'] = win.Geometry
@@ -290,7 +335,6 @@ def getUIValues():
         10:importStock (bool),
         11:copyMediaPath (string),
         12:autoImportSourceClipsIntoMediaPool (bool),
-        13:avidFolders (list)
         ) Tuple
     """
 
@@ -333,6 +377,10 @@ def getUMEPath():
     return umePath
 
 def getAvidMXFFolder():
+    '''
+        Gets the "Avid MediaFiles/MXF" folder from the "Avid Folders" list.
+        If more than one exists, the first one is returned.
+    '''
     
     for folder in settings.get('avidFolders',[]):
         if folder.endswith("Avid MediaFiles" + os.sep + "MXF"):
@@ -341,6 +389,15 @@ def getAvidMXFFolder():
     print_error("Avid folders list does not contains a Avid MediaFiles" + os.sep + "MXF folder.")
     
 def importIngestSettings(path:str,importToKey:str,importFromKey:str):
+    '''
+        Import a list from the "ReelMyFiles" application.
+        
+        Arguments:
+
+            path: the path to the json file
+            importToKey: the dict key to here to import the list (destination key)
+            importFromKey: the dict key from here to import the list (source key)
+    '''
     if os.path.exists(path):
         with open(path,'r') as openFile:
             ingestSettings = json.load(openFile)
@@ -356,6 +413,16 @@ def importIngestSettings(path:str,importToKey:str,importFromKey:str):
 
 
 def getAvidMedia(folderPaths : list):
+    '''
+        Scan the avid folders list for media file names.
+        After the collect the relevant file names, call the 
+        importClips method to import the media to the media pool 
+        as media pool clips.
+        
+        Arguments:
+
+            folderPaths: the list of folder paths. 
+    '''
     
     print_info("Getting Media Files (Avid)")
     fileEndings = ["_0.MXF","V.MXF","_CC.MXF","_VFX.MXF",".pmxf"]
@@ -429,13 +496,23 @@ def getMediaFiles(foldersPaths:list, clipDict:dict, folderType:list):
                     cameraFolderExits = True
                     break
             for name in files:
+                replace = True
                 filename = os.path.join(root,name)
                 _,ext = os.path.splitext(filename)
                 if cameraFolderExits and ext.upper() in mimes:
                     fileReel = extractReelName(name, fieldSep,fieldCount)
-                    if clipDict.get(fileReel):
-                        amaFiles[fileReel] = filename
-                        numFiles+=1
+                    clip = clipDict.get(fileReel)
+                    if clip:
+                        
+                        if amaFiles.get(fileReel):
+                            mpClips = mediaPool.ImportMedia([amaFiles.get(fileReel),filename])
+                            if isMpClipHighRes(mpClips[0]) and not isMpClipHighRes(mpClips[1]):
+                                replace = False
+                            mediaPool.DeleteClips(mpClips)
+                                
+                        if replace:
+                            amaFiles[fileReel] = filename
+                            numFiles+=1
 
             now = time.time()
             if ts + 1. < now:
@@ -462,6 +539,9 @@ def getMediaFolder(name, parent = None):
     return None    
 
 def getHostName():
+    '''
+        Returns the local hostname regarding the OS.
+    '''
     hostName = None
     if platform.system() == "Windows":
         hostName = platform.uname().node
@@ -471,6 +551,11 @@ def getHostName():
     return hostName
 
 def lockBinFile(binFilePath: str):
+    '''
+        Create a lock file to prevent mutual access to the drb stock bin file.
+        
+        Returns: True if the lock is created successfully. False otherwise.
+    '''
     print_info("Locking stock bin.")
     folder = os.path.dirname(binFilePath)
     if not os.path.exists(folder):
@@ -503,6 +588,11 @@ def lockBinFile(binFilePath: str):
     return True  
                 
 def unlockBinFile(binFilePath: str):
+    '''
+        Delete the lock file thats prevent mutual access to the drb stock bin file.
+        
+        Returns: True if the lock is deleted successfully. False otherwise.
+    '''
     folder = os.path.dirname(binFilePath)
     fileName = os.path.basename(binFilePath).removesuffix(".drb")
     lockFile = os.path.join(folder,fileName + ".lock")
@@ -515,7 +605,7 @@ def unlockBinFile(binFilePath: str):
                 os.remove(lockFile)
                 print_info("Stock bin lock removed.")
             except Exception as e:
-                print_error(f"Some error ocurred: {e}")
+                print_error(f"Some error occurred: {e}")
                 return False
         else:
             print_error("Can't unlock stock bin file! This machine is not the owner of the lock!")
@@ -526,7 +616,16 @@ def unlockBinFile(binFilePath: str):
     return True
                 
 
-def importClips(files):
+def importClips(files:list):
+    '''
+        Import the Avid media files to the media pool as media pool clips.
+        This method is called from in the return of the getAvidMedia method.
+        
+        Arguments:
+        
+            files: list of filename paths to import
+    '''
+    
     global stockBinPath
     
     print_info("Importing clips to stock...")
@@ -693,15 +792,31 @@ def createBlackListFiles(importedClips:list,files2Process:list,blacklist_par:lis
     return blacklist
         
 def loadBlacklistFiles(blackListFileName:str):
+    '''
+        Load the blacklisted files from the blacklist file.
+        
+        Returns:
+
+            A list with the blacklisted files.
+    '''
     blacklist = []
     if os.path.exists(blackListFileName):
         with open(blackListFileName,'r') as f:
             blacklistJson = json.load(f)
             blacklist= blacklistJson.get('files',[])
+            
     return blacklist
 
 
 def getTimelineClips():
+    '''
+        Returns the timeline clips (items) in all timeline video tracks.
+        
+        Returns:
+        
+            A list with the clips. 
+    '''
+    
     global currentTimeline    
     clips = []
     currentTimeline = currentProject.GetCurrentTimeline()
@@ -715,6 +830,17 @@ def getTimelineClips():
     return clips
 
 def getTimelineClipFromEditIndex():
+    '''
+        Returns the clips represented in the DR "Edit Index" as 
+        MyMpClip (virtual media pool clip).
+        Please see the MyMpClip class for details.
+        
+        Returns:
+        
+            A dict where the key is a tuple with the video track index and the clip Record In TC.
+            
+    '''
+    
     global currentTimeline    
     currentTimeline = currentProject.GetCurrentTimeline()
     csv_path = os.path.join(os.path.expanduser("~"),"timeline.csv")
@@ -752,7 +878,7 @@ def getTimelineClipFromEditIndex():
 
 def getMpClipsFromTimeline(resolution:str = 'all'): 
     """
-        Return all media pool clips don't matter the media type.
+        Return all media pool clips linked to the timeline don't matter the media type.
         
         Arguments:
             resolution: one of 'all','high' or 'proxy'
@@ -774,8 +900,11 @@ def getMpClipsFromTimeline(resolution:str = 'all'):
 
 def getTimelineClipsMog(clipsList, timeline_names_reels):
     """
+    Returns the Mog media pool clips linked to the timeline.
+    
     Arguments:
         clipsList: timeline clips list
+        timeline_names_reels: dict with the MyMpClip objects extracted from the "Edit Index"
         
     Returns a dict as {"clipReel":(<media pool clip>,'MOG',<timelineClip>),....}
     """
@@ -826,9 +955,14 @@ def getTimelineClipsMog(clipsList, timeline_names_reels):
 
 def getTimelineClipsOthers(clipsList,clipType,timeline_names_reels):
     """
+    Returns the Sony/OTHER media pool clips linked to the timeline.
+    
     Arguments:
+
         clipsList: timeline clips list
         clipType: clipType
+        timeline_names_reels: dict with the MyMpClip objects extracted from the "Edit Index"
+
         
     Returns a dict as {clipReel: (<media pool clip>,clipType,timelineClip),...}
     """
@@ -879,13 +1013,31 @@ def getTimelineClipsOthers(clipsList,clipType,timeline_names_reels):
     return clipDict if numClips > 0 else None
 
 def getMpClipFromReelName(reelName:str,stockClipList:list):
-    
+    '''
+        Get the media pool clip corresponding to a given reel name.
+        
+        Arguments:
+
+            reelName: a str with the reel name.
+            stockClipList: the list of clips from the stock bin.
+            
+        Returns:
+
+            A API MediaPoolItem object.
+    '''
     for mpClip in stockClipList:
         if mpClip.GetClipProperty("Reel Name") == reelName:
             return mpClip
         
  
 def removeExtension(path):
+    '''
+        Remove a extension from a filename.
+        
+        Arguments:
+        
+            path: the filename path.
+    '''
     valueParts = path.split(".")
     if len(valueParts) > 1:
         valueParts = valueParts[0:len(valueParts)-1]
@@ -893,7 +1045,20 @@ def removeExtension(path):
     return ".".join(valueParts)
 
 def extractReelName(value: str, fieldSep = None, fieldCount = None):
+    '''
+        Extracts a reel name from a filename.
+        
+        Arguments:
 
+            value: a filename without path.
+            fieldSep: the Mog field separator.
+            fieldCount: the Mog number of field to have in count.
+            
+        Returns:
+
+            A str with the reel name.
+    '''
+    
     # remove extension
     clipName = removeExtension(value)
     if fieldSep == None and fieldCount == None: # is sony
@@ -905,6 +1070,9 @@ def extractReelName(value: str, fieldSep = None, fieldCount = None):
     return fieldSep.join(fields)
     
 def changeClipsColorOnAutoImportSourceClipsIntoMediaPool():
+    '''
+        Change the color of the clips when the "Auto Import Source Clips Into Media Pool" option is used.
+    '''
     timelineClips = getTimelineClips()
     for clip in timelineClips:
         mpClip = clip[0].GetMediaPoolItem()
@@ -912,6 +1080,13 @@ def changeClipsColorOnAutoImportSourceClipsIntoMediaPool():
             mpClip.SetClipColor(typeColor['AUTO'])
         
 def getTimelineCodecs():
+    '''
+        Returns all codecs used in the current timeline.
+        
+        Returns: 
+        
+            A list of str with the codecs designations.
+    '''
     timelineClips = getTimelineClips()
     codecs=[]
     for clip in timelineClips:
@@ -925,6 +1100,19 @@ def getTimelineCodecs():
     return codecs
 
 def replaceClips(timelineClips:dict,files:dict):
+    '''
+        Replace the imported timeline (AAF) linked media pool clips with the corresponding
+        high resolution ones.  
+        
+        Arguments:
+            timelineClips: a dict with the media pool clips linked to the timeline.
+            files: a dict with the high resolution files to consider.
+            
+        Returns:
+
+            The number of clips replaced.
+    '''
+    
     print_info("Conforming clips...")
     currentFolder = getMediaFolder(currentTimeline.GetName())
     binFolder = getMediaFolder("media",parent = currentFolder)
@@ -988,6 +1176,7 @@ def replaceClips(timelineClips:dict,files:dict):
         
     return counter
 
+# not used
 def getMpClipMyName(name:str,mediaFolder):
     for clip in mediaFolder.GetClipList():
         if name == clip.GetName():
@@ -997,6 +1186,9 @@ def getMpClipMyName(name:str,mediaFolder):
     
 
 def insertReferences():
+    '''
+        Insert the optional video and audio references files into the timeline.
+    '''
     global currentTimeline
     
     currentTimeline = currentProject.GetCurrentTimeline()
@@ -1051,6 +1243,15 @@ def insertReferences():
     currentTimeline.SetCurrentTimecode(currentTimeline.GetStartTimecode())
     
 def buttonsEnabled(state,exceptions:list=[]):
+    '''
+        Activate or deactivate the UI objects before (deactivate) of after (activate) a operation.
+        This prevents that the user to interact with the UI while a operation is being processed.
+        
+        Arguments:
+        
+            state: a boolean with the state to apply.
+            exceptions: list of UI objects to not activate or deactivate.
+    '''
     exceptions.append('mainWindow')
     exceptions.append('MyStack')
     if state:
@@ -1064,8 +1265,20 @@ def buttonsEnabled(state,exceptions:list=[]):
             obj.Enabled = state
 
 def fileExists(filePath, extraText = ""):
+    '''
+        Popups a message if a file does not exists.
+        
+        Arguments:
+            
+            filePath: filename path.
+            extraText: some text do add to the default message.
+            
+        Returns:
+        
+            True if the file exists or False otherwise.
+    '''
     if not os.path.exists(filePath):
-        errorPopupDialog("The file " + filePath + " does not exists.")
+        errorPopupDialog("The file " + filePath + " does not exists." + extraText)
         return False
     
     return True
@@ -1073,7 +1286,16 @@ def fileExists(filePath, extraText = ""):
 def tc2Frames(tc:str):
     
     """
-    Returns a timecode string in frames (int)
+        Returns a timecode string in frames (int)
+    
+        Arguments:
+        
+            tc: a str with the time code. The "." and ";" separators will be converted to ":". 
+            
+        Returns:
+
+            A int with the number of frames.
+    
     """
     tc = tc.replace(".",":")
     tc = tc.replace(";",":")
@@ -1090,8 +1312,31 @@ def tc2Frames(tc:str):
     
     return tc_frames
     
+def isMpClipHighRes(clip):
+    '''
+        Test if a media clip codec is in the high resolution list.
+        
+        Arguments:
+
+            clip: a MediaPoolItem API object
+            
+        Returns:
+        
+            True if the clip is high resolution or False if is proxy.
+    '''
+    
+    codec = clip.GetClipProperty("Video Codec")
+    return codec in settingsJson.get('codecs',[])
+    
     
 def isOnStockFolder():
+    '''
+        Test and alert the user that must get out of the stock bin folder.
+        
+        Returns:
+        
+            True if the user in inside the stock folder or False otherwise.
+    '''
     if mediaPool.GetCurrentFolder().GetName() == "stock":
         errorPopupDialog("You can not do this operation inside the stock folder/bin.\nPlease choose another folder/bin")
         return True
@@ -1099,6 +1344,13 @@ def isOnStockFolder():
     return False
 
 def isNotTimelineSelected():
+    '''
+        Test and alert the user that must have a timeline selected.
+        
+        Returns:
+        
+            True if there is no timeline selects or False otherwise.
+    '''
     if not currentProject.GetCurrentTimeline():
         errorPopupDialog("Please, select a timeline or import a AAF.")
         return True
@@ -1106,6 +1358,13 @@ def isNotTimelineSelected():
     return False
 
 def isEditPage():
+    '''
+        Test and alert the user that must be in the DR Edit page.
+        
+        Returns:
+        
+            True if the user have the edit page selected or False otherwise.
+    '''
     page = resolve.GetCurrentPage()
     if page != "edit":
         errorPopupDialog("Please go to the Edit page")
@@ -1114,6 +1373,14 @@ def isEditPage():
     return True
 
 def isCopyMediaOk():
+    '''
+        Test if the paths for coping the high resolution media to a new location are correct.
+        
+        Returns:
+
+            A tuple with the new path and the media pool folder bin where to scan for the actual media locations.
+            If the test is false a False,False tuple is returned.
+    '''
     if isNotTimelineSelected():
         return False,False
     
@@ -1130,7 +1397,22 @@ def isCopyMediaOk():
     
     return mediaPath,binFolder
 
+# TODO: some better way to test if the reel name option is selected.
 def isReelNameSelected(clipDict):
+    '''
+        Test if the reel name option in the DR settings is selected.
+        This test is done by getting the property of a media pool clip(s). If all
+        clips the dict as no reel name, this will return False, even if the option is 
+        selected. This need to be addressed.
+        
+        Arguments:
+            
+            A dict of media pool clips to test.
+        
+        Returns:
+
+            True if the option is selected or False otherwise.
+    '''
     if len(clipDict.keys()) == 0: # does not matter if does no have clips
         return True
     
@@ -1138,21 +1420,37 @@ def isReelNameSelected(clipDict):
         if v[0].GetClipProperty("Reel Name"):
             return True    
     
-    errorPopupDialog("No Reel Names Found.\n" \
+    ret,_,_ = genericPopupDialog("No Reel Names Found.\n" \
     "The reel names need to be activated in the Project Settings.\n" \
     "Please goto File->Project Settings...->General Options\n" \
     "In the Conform Options section select:\n" \
     "- Assist using reel names from the:\n" \
-    "-- Embedding in source clip file")
+    "-- Embedding in source clip file","Continue",haveRejectButton=True)
     
-    return False
+    return ret
 
 def isImportExportDrbPossible():
+    '''
+        Test if the DR version allow importing of dbr files.
+        
+        Returns:
+
+            True if is allowed or False otherwise.
+    '''
     version = str(RESOLVE_VERSION[0])+str(RESOLVE_VERSION[1])
     #print(version)
     return (int(version) >= 185)
 
 def isDrbTodayFirstExport():
+    '''
+        Test if the dbr file was already exported at the current day.
+        If not, is asked to the user if he/she wants to export the dbr.
+        This is used if the "Export Stock Bin" is not selected when importing a AAF.
+        
+        Returns:
+        
+            False if the dbr was already exported or the user rejects to export, or return True if the user accept to export.
+    '''
 
     fileDate = None if not os.path.exists(stockBinPath) else datetime.datetime.fromtimestamp(os.path.getmtime(stockBinPath)).date()
     today = datetime.datetime.now().date()    
@@ -1163,6 +1461,14 @@ def isDrbTodayFirstExport():
     return False
     
 def areFoldersOk():
+    '''
+        Teste if all folders locations exit and are configured.
+        
+        Returns:
+        
+            True if everything is or False otherwise. 
+    '''
+    
     """
     Get the UI values.
     
@@ -1205,15 +1511,27 @@ def areFoldersOk():
     
     return ret
 
-    
+#TODO: the rest of the docstrings
 
 def timelineExists(timelineName:str):
+    '''
+        Test if a timeline with a given name exists.
+        
+        Arguments:
+        
+            timelineName: the name of the timeline.
+            
+        Returns:
+        
+            True if the timeline exists or else otherwise.
+    '''
     for i in range(1,currentProject.GetTimelineCount()+1):
         if currentProject.GetTimelineByIndex(i).GetName() == timelineName:
             return True
     
     return False
 
+# not used
 def working(command:str="start"):
     """
         Start and stop the working script that prints progress points in the console.
@@ -1322,7 +1640,8 @@ def BtConformAll(ev):
     if BtConformCameras({'who':'btConformSony'}):
         if BtConformCameras({'who':'btConformOthers'}):
             BtConformMog(None)
-    
+
+# not used
 def otioTransform(path):
     filePath,_ = os.path.splitext(path)
     otioPath = filePath + ".otio"
@@ -1356,8 +1675,11 @@ def otioTransform(path):
     #        pprint(tool.GetData())
     
     return aafFile
+
+# not used
 def otioExport(path:str):
     pass
+
 def BtImportAAF(ev):
     global currentTimeline,stockBinPath
     values = getUIValues()
@@ -1509,6 +1831,9 @@ def BtImportAAF(ev):
     unlockBinFile(stockBinPath)
     
 def ProjectChanged(ev):
+    '''
+        Handle the Home Project pulldown event
+    '''
     global currentHouseProject
     global win
     saveSetting(currentHouseProject)
@@ -1669,6 +1994,9 @@ def OnDeleteMedia(ev):
             
             
 def OnBrowse(ev):
+    '''
+        Handles ALL browse for files or directories buttons.
+    '''
     buttonsEnabled(False)
     who = ev['who']
     if who == "btBrowseMog":
@@ -1882,8 +2210,7 @@ def OnProxyCodecsList(ev):
             treeProxyCodecsConfig(win)
             saveSetting()
 
-
-            
+# just for tests. The button it's hidden.         
 def OnTeste(ev):
     timeline_names_reels = getTimelineClipFromEditIndex()
     for clip_tuple in getTimelineClips():
@@ -1940,10 +2267,9 @@ def tabsConfig(win):
     items['MyTabs'].AddTab("General")
     items['MyTabs'].AddTab("Settings")
 
-#TODO
 def treeMediaFoldersConfig(win,treeTitle:str,treeObject:str,settingsKey:str):
     '''
-        Generic method to configure media folders tree 
+        Generic method to configure media folders trees
         
         Arguments:
         
@@ -2321,7 +2647,18 @@ def MainWindow():
 
     return win
 
-def errorPopupDialog(label=""):
+def errorPopupDialog(label:str=""):
+    '''
+        Custom popup dialog for errors.
+        
+        Arguments:
+
+            label: some text to show.
+            
+        Returns:
+
+            A tuple: (dialog object, dict with the dialog elements)
+    '''
     
     def OnErrorDialogClose(ev):
         dispatcher.ExitLoop()
@@ -2348,10 +2685,23 @@ def errorPopupDialog(label=""):
     buttonsEnabled(True)
     return errorDialog,items
 
-def genericPopupDialog(label="",acceptButtonText="OK",rejectButtonText="Cancel",haveInput=False,haveRejectButton=False):
+def genericPopupDialog(label:str="",acceptButtonText:str="OK",rejectButtonText:str="Cancel",haveInput:bool=False,haveRejectButton:bool=False):
     
     """
-        Return: (accepted (boolean),dialog object,dialog items objects)
+        A generic popup dialog to present messages to the user.
+        The dialog can have a optional reject button, i.e. Cancel button, and a optional input text field.
+        The input text can be accessed using the elements dict like "items['LineEdit'].Text". 
+        
+        Arguments:
+        
+            label: some text to show.
+            acceptButtonText: text for the accept button (default "OK").
+            rejectButtonText: text for the reject button (default "Cancel"). The haveRejectButton argument must be True to turn this button visible.
+            haveInput: turn the optional 
+
+        Return: 
+        
+            A tuple: (accepted (boolean),dialog object,dialog elements (dict))
     """
       
     def OnGenericPopupDialog(ev):
