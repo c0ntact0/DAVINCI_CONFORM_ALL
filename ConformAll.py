@@ -1302,16 +1302,28 @@ def tc2Frames(tc:str):
     tc_list = tc.split(":")
     
     hours = int(tc_list[0])
-    minuts = int(tc_list[1])
+    minutes = int(tc_list[1])
     seconds = int(tc_list[2])
     frames = int(tc_list[3])
     
     fps = int(currentProject.GetSetting("timelineFrameRate"))
     
-    tc_frames = hours * 60 * 60 * fps + minuts * 60 * fps + seconds * fps + frames
+    tc_frames = hours * 60 * 60 * fps + minutes * 60 * fps + seconds * fps + frames
     
     return tc_frames
+
+def isAvidMediaFilesFolder(path:str):
+    splitPath = os.path.normpath(path).split(os.sep)
+    try:
+        idx = splitPath.index("Avid MediaFiles")
+    except ValueError:
+        return False
     
+    if len(splitPath) == idx + 1: # does not have a folder after
+        return False
+    
+    return True
+
 def isMpClipHighRes(clip):
     '''
         Test if a media clip codec is in the high resolution list.
@@ -2009,12 +2021,13 @@ def OnBrowse(ev):
         txt = win.Find('txtAvidPath')
         newPath = fu.RequestDir(txt.Text)
         if newPath:
-            if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep) \
-                or newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'UME' + os.sep):
+            #if newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep) \
+            #    or newPath.endswith(os.sep + 'Avid MediaFiles' + os.sep + 'UME' + os.sep):
+            if isAvidMediaFilesFolder(newPath):
                 txt.Text = newPath
             else:
                 print_error('Wrong path')
-                errorPopupDialog(newPath + " is a wrong Path.\nThe path must be in the format <Volume>" + os.sep + 'Avid MediaFiles' + os.sep + 'MXF' + os.sep)
+                errorPopupDialog(newPath + " is a wrong Path.\nThe path must be in the format <Volume>" + os.sep + 'Avid MediaFiles' + os.sep + '<Some Folder>')
             
     elif who == "btBrowseAAF":
         txt = win.Find('txtAAFPath')
