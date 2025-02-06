@@ -15,6 +15,8 @@ from multiprocessing import resource_tracker
 #sys.path.append('/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules')
 #import DaVinciResolveScript as dvr
 
+ICON = "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"
+
 class MyMpClip():
     
     '''
@@ -170,7 +172,7 @@ def print_info(*args,sep: str = " ", end: str = "\n"):
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2025.2.0"
+CONFORM_ALL_VERSION="2025.3.0"
 RESOLVE_VERSION=resolve.GetVersion()
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
@@ -280,7 +282,7 @@ def saveSetting(project = None,rename = False):
             project: the name of the home project to save. if present, the project settings
             are saved. If not present only the application settings are saved.
             rename: if True, the project will be renamed with the name currently in the 
-            House Project UI text field (not the one selected in the pulldown).
+            Profile UI text field (not the one selected in the pulldown).
             
             This means that the user pressed the "Rename" button.
              
@@ -1849,15 +1851,20 @@ def ProjectChanged(ev):
     global currentHouseProject
     global win
     saveSetting(currentHouseProject)
+    who = ev['who']
+    if who == 'cbProjectsOperation':
+        currentHouseProject = cbProjectsOperation.CurrentText
+        cbProjects.CurrentText = currentHouseProject
+    
     currentHouseProject = cbProjects.CurrentText
+    if who == 'cbProjects':
+        cbProjectsOperation.CurrentText = currentHouseProject
     loadSettings()
     getSettings(currentHouseProject)
-    print_info("Current project is",currentHouseProject)
-    
-    #TODO: ver isto melhor, não deviar ter que reconstruir a window
-    win.Hide()
-    win = MainWindow()
-    win.Show()
+    if who == 'cbProjects':
+        print_info("Current project is",currentHouseProject)
+
+    refreshMainWindow()
 
 def DeleteProject(ev):
     global currentHouseProject
@@ -1871,6 +1878,10 @@ def DeleteProject(ev):
     idx = cbProjects.CurrentIndex
     currentHouseProject = None
     cbProjects.CurrentIndex = idx-1
+    cbProjects.RemoveItem(idx)
+    cbProjectsOperation.CurrentIndex = idx-1
+    cbProjectsOperation.RemoveItem(idx)
+    
     settingsJson['projects'].remove(oldSettings)
 
     
@@ -1882,6 +1893,7 @@ def AddProject(ev):
         print_error("Project",newName,"already exist!")
         return
     cbProjects.AddItem(newName)
+    cbProjectsOperation.AddItem(newName)
     currentHouseProject = newName
     cbProjects.CurrentText = newName
     
@@ -1893,6 +1905,7 @@ def RenameProject(ev):
         return
     oldName = cbProjects.CurrentText
     cbProjects.ItemText[cbProjects.CurrentIndex] = newName
+    cbProjectsOperation.ItemText[cbProjectsOperation.CurrentIndex] = newName
     saveSetting(oldName,rename=True)
     
 def OnCopyMedia(ev):
@@ -2277,8 +2290,9 @@ def tabsConfig(win):
     items = win.GetItems()
     
     items['MyStack'].CurrentIndex = 0
-    items['MyTabs'].AddTab("General")
-    items['MyTabs'].AddTab("Settings")
+    items['MyTabs'].AddTab("Operation")
+    items['MyTabs'].AddTab("Profiles Settings")
+    items['MyTabs'].AddTab("Global Settings")
 
 def treeMediaFoldersConfig(win,treeTitle:str,treeObject:str,settingsKey:str):
     '''
@@ -2378,17 +2392,45 @@ def treeProxyCodecsConfig(win):
         row = tree.NewItem()
         row.Text[0] = ext
         tree.AddTopLevelItem(row)
+
+def refreshMainWindow():
+    items = win.GetItems()
     
+    items['txtNewProject'].Text = currentHouseProject
+    items['txtMogPath'].Text = settings.get('mogPath','')
+    items['txtFieldSep'].Text = settings.get('fieldSep','')
+    items['spFieldCount'].Value = settings.get('fieldCount',5)
+    items['txtSonyPath'].Text = settings.get('sonyPath','')
+    items['txtAvidPath'].Text = settings.get('avidPath','')
+    items['txtAAFPath'].Text = settings.get('aafPath','')
+    items['ckExportStock'].Checked = settings.get('exportStock',True)
+    items['ckImportStock'].Checked = settings.get('importStock',True)
+    items['ckAutoImportSourceClipsIntoMediaPool'].Checked = settings.get('autoImportSourceClipsIntoMediaPool',False)
+    items['txtCopyMediaPath'].Text = settings.get('copyMediaPath','')
+    treeExtensionsConfig(win)
+    treeCameraFoldersConfig(win)
+    treeCodecsConfig(win)
+    treeProxyCodecsConfig(win)
+    treeMediaFoldersConfig(win,"Avid Folders","treeAvidFolders","avidFolders")
+    treeMediaFoldersConfig(win,"Sony Folders","treeSonyFolders","sonyFolders")
+    treeMediaFoldersConfig(win,"Mog Folders","treeMogFolders","mogFolders")
+    
+
 # =============== UI WINDOW =============
 def MainWindow():
     global cbProjects
+    global cbProjectsOperation
 
-    cbProjects = ui.ComboBox({'ID':'cbProjects'})
+    cbProjects = ui.ComboBox({'ID':'cbProjects','ToolTip':'Changing the profile here will change the current operation profile'})
     cbProjects.AddItems(getProjects())
     cbProjects.CurrentText = currentHouseProject
     
-    houseProjectLayout = ui.VGroup({'ID':'houseProjectLayout','Weight': 0.0},[
-        ui.Label({'Text':'House Project','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+    cbProjectsOperation = ui.ComboBox({'ID':'cbProjectsOperation','ToolTip':'Changing the profile here also change the profile in the Profiles Settings tab'})
+    cbProjectsOperation.AddItems(getProjects())
+    cbProjectsOperation.CurrentText = currentHouseProject
+    
+    profileSettingsLayout = ui.VGroup({'ID':'houseProjectLayout','Weight': 0.0},[
+        ui.Label({'Text':'Profile','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
         ui.HGroup({'Weight': 0.0},[cbProjects,
                                  ui.Button({'ID':'btDeleteProject','Text':'Delete Current','Weight': 0.0})
                                    ]),
@@ -2398,10 +2440,19 @@ def MainWindow():
                                    ])
         ])
     
+    operationProfileLayout = ui.VGroup({'ID':'houseProjectOperationLayout','Weight': 0.0},[
+        ui.Label({'Text':'Profile','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+        ui.HGroup({'Weight': 0.0},[cbProjectsOperation]),
+        ])
+    
+    
     mogPathLayout =ui.VGroup({'Weight:2.0'},
-    [ ui.HGroup({'Weight': 0.0},
+    [    
+     ui.Label({'Text':'Mog Settings','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+     ui.VGap(0.2), 
+     ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'MOG Path','FixedSize':[70,30]}),
-            ui.LineEdit({'ID':'txtMogPath','Text':settings['mogPath'],'MinimumSize':[400,30]}),
+            ui.LineEdit({'ID':'txtMogPath','Text':settings.get('mogPath',''),'MinimumSize':[400,30]}),
             ui.Button({'ID':'btBrowseMog','Text':'Browse','Weight': 0.0})         
         ]
     ),ui.HGroup({'Weight': 10.0},[
@@ -2414,21 +2465,25 @@ def MainWindow():
                 ui.Button({'ID':'btRemoveMogFolder','Text':'Remove','Weight': 0.0}),
             ])
             ])
+    
     ])
 
     extractionLayout = ui.HGroup(
         [   ui.Label({'Text':'Field Separator','FixedSize':[100,30]}),
-            ui.LineEdit({'ID':'txtFieldSep','Text':settings['fieldSep']}),
+            ui.LineEdit({'ID':'txtFieldSep','Text':settings.get('fieldSep','_')}),
             ui.HGap(5),
             ui.Label({'Text':'Field Count','FixedSize':[100,30]}),
-            ui.SpinBox({'ID':'spFieldCount','Value':settings['fieldCount'],'Minimum':1,'Maximum':32,'SingleStep':1}),
+            ui.SpinBox({'ID':'spFieldCount','Value':settings.get('fieldCount',5),'Minimum':1,'Maximum':32,'SingleStep':1}),
         ]
     )
     
     sonyPathLayout = ui.VGroup({'Weight:2.0'},
-    [ ui.HGroup({'Weight': 0.0},
+    [ 
+    ui.Label({'Text':'Sony and Other Cameras Settings','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+    ui.VGap(0.2),
+     ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'SONY/OTHER Path','FixedSize':[75,30]}),
-            ui.LineEdit({'ID':'txtSonyPath','Text':settings['sonyPath'],'MinimumSize':[400,30]}),
+            ui.LineEdit({'ID':'txtSonyPath','Text':settings.get('sonyPath',''),'MinimumSize':[400,30]}),
             ui.Button({'ID':'btBrowseSony','Text':'Browse','Weight': 0.0})
         ]
     ),ui.HGroup({'Weight': 10.0},[
@@ -2444,9 +2499,12 @@ def MainWindow():
     ])
     
     avidPathLayout = ui.VGroup({'Weight:2.0'},
-    [ ui.HGroup({'Weight': 0.0},
+    [ 
+     ui.Label({'Text':'Avid','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+     ui.VGap(2),
+     ui.HGroup({'Weight': 0.0},
         [   ui.Label({'Text':'AVID Path','FixedSize':[60,30]}),
-            ui.LineEdit({'ID':'txtAvidPath','Text':settings['avidPath'],'MinimumSize':[400,30]}),
+            ui.LineEdit({'ID':'txtAvidPath','Text':settings.get('avidPath',''),'MinimumSize':[400,30]}),
             ui.Button({'ID':'btBrowseAvid','Text':'Browse','Weight': 0.0}),
             
         ]
@@ -2471,21 +2529,35 @@ def MainWindow():
     """
     
     importAAFLayout = ui.VGroup({'Weight': 0.0,'StyleSheet':'QGroupBox {border: 1px solid white}'},[
+        ui.Label({'Text':'Import AFF','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+        ui.VGap(2),
         ui.HGroup({'Weight': 0.0},[
-        ui.LineEdit({'ID':'txtAAFPath','Text':settings['aafPath']}),
+        ui.LineEdit({'ID':'txtAAFPath','Text':settings.get('aafPath','')}),
         ui.Button({'ID':'btBrowseAAF','Text':'Browse','Weight': 0.0}),
         ui.Button({'ID':'btImportAAF','Text':'Import AAF','Weight': 0.0}),
     ]),
         ui.HGroup({'Weight': 0.0},[
-            ui.CheckBox({'ID':'ckExportStock','Text':'Export Stock Bin','Checked':settings['exportStock'],'ToolTip':"Export the stock bin to " + settings['avidPath'] + " after importing the media"}),
-            ui.CheckBox({'ID':'ckImportStock','Text':'Import Stock Bin','Checked':settings['importStock'],'ToolTip':"Import the saved stock bin from disk if the stock folder does not exist"}),
+            ui.CheckBox({'ID':'ckExportStock','Text':'Export Stock Bin','Checked':settings.get('exportStock',True),'ToolTip':"Export the stock bin to " + settings.get('avidPath','') + " after importing the media"}),
+            ui.CheckBox({'ID':'ckImportStock','Text':'Import Stock Bin','Checked':settings.get('importStock',True),'ToolTip':"Import the saved stock bin from disk if the stock folder does not exist"}),
             ui.CheckBox({'ID':'ckAutoImportSourceClipsIntoMediaPool','Text':'Auto Import Source Clips Into MediaPool','Checked':settings.get("autoImportSourceClipsIntoMediaPool",False),
                          'ToolTip':"Use if you want to import and link the timeline to the source clips. Use this with a Avid Edge workflow.",'StyleSheet':'color: ' + typeColor['AUTO']}),
             #autoImportSourceClipsIntoMediaPool       
                    ])
         ])  
     
+    conformLayout = ui.VGroup({'Weight': 0.0},[
+        ui.Label({'Text':'Conforming','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+         ui.VGap(0.2),
+         ui.VGroup({'Weight': 0.0},[
+         ui.Button({'ID':'btConformSony','Text':'Conform SONY','Weight': 0.0,'StyleSheet':'color: ' + typeColor['SONY']}),
+         ui.Button({'ID':'btConformOthers','Text':'Conform OTHER cameras','Weight': 0.0,'StyleSheet':'color: ' + typeColor['OTHER'] }),
+         ui.Button({'ID':'btConformMog','Text':'Conform MOG','Weight': 0.0,'StyleSheet':'color:' + typeColor['MOG']}),
+         ui.Button({'ID':'btConformAll','Text':'Conform ALL media types','Weight': 0.0})]),
+    ])
+        
     copyMediaLayout = ui.VGroup({'Weight': 0.0},[
+        ui.Label({'Text':'Copy files to edit storage and relink','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+        ui.VGap(2),
         ui.HGroup({'Weight': 0.0},[
         ui.Label({'Text':'Destination','FixedSize':[70,30]}),
         ui.LineEdit({'ID':'txtCopyMediaPath','Text':settings.get('copyMediaPath',"")}),
@@ -2497,43 +2569,37 @@ def MainWindow():
         
     )
     
-    vLayoutGeneral = ui.VGroup({'Weight': 0.0},
-        [ui.Label({'Text':'<p><a href="https://github.com/c0ntact0/DAVINCI_CONFORM_MOG/blob/main/README.md#versions" target="_blank">Versions</a></p>','OpenExternalLinks':True}),
-        houseProjectLayout,
+    vLayoutOperation = ui.VGroup({'Weight': 0.0},
+        [ 
+         ui.Label({'Text':'<p><a href="https://github.com/c0ntact0/DAVINCI_CONFORM_MOG/blob/main/README.md#versions" target="_blank">Versions</a></p>',
+                   'Alignment':{'AlignTop' : True},'OpenExternalLinks':True,'Weight': 0.0}),
          ui.VGap(0.2),
-         ui.Label({'Text':'Mog Settings','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
+         operationProfileLayout,
+         ui.VGap(0.2),
+         importAAFLayout,
+         ui.VGap(0.2),
+         conformLayout,
+         ui.VGap(0.2),
+         copyMediaLayout,
+         ui.VGap(0.2),
+         
+         ui.Label({'Text':'<img alt="" src="data:image/png;base64,' + ICON + '">', 'Alignment':{'AlignVCenter' : True,'AlignCenter': True},'OpenExternalLinks':True,'Weight': 2.0})
+         #,ui.Button({'ID':'btTeste','Text':'Teste'})
+         ]
+        
+    )
+    
+    vLayoutProfiles = ui.VGroup({'Weight': 0.0},[
+        profileSettingsLayout,
          ui.VGap(0.2),
          mogPathLayout,
          ui.VGap(2),
          extractionLayout,
          ui.VGap(5),
-         ui.Label({'Text':'Sony and Other Cameras Settings','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
-         ui.VGap(0.2),
          sonyPathLayout,
          ui.VGap(0.2),
-         ui.Label({'Text':'Avid','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
-         ui.VGap(2),
          avidPathLayout,
-         ui.VGap(0.2),
-         ui.Label({'Text':'Import AFF','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
-         ui.VGap(2),
-         importAAFLayout,
-         ui.VGap(0.2),
-         ui.Label({'Text':'Conforming','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
-         ui.VGap(0.2),
-         ui.VGroup({'Weight': 0.0},[
-         ui.Button({'ID':'btConformSony','Text':'Conform SONY','Weight': 0.0,'StyleSheet':'color: ' + typeColor['SONY']}),
-         ui.Button({'ID':'btConformOthers','Text':'Conform OTHER cameras','Weight': 0.0,'StyleSheet':'color: ' + typeColor['OTHER'] }),
-         ui.Button({'ID':'btConformMog','Text':'Conform MOG','Weight': 0.0,'StyleSheet':'color:' + typeColor['MOG']}),
-         ui.Button({'ID':'btConformAll','Text':'Conform ALL media types','Weight': 0.0})]),
-         ui.VGap(0.2),
-         ui.Label({'Text':'Copy files to edit storage and relink','Alignment':{'AlignTop' : True,'AlignCenter' : True},'StyleSheet':'border: 1px white;border-style: solid none none none'}),
-         ui.VGap(2),
-         copyMediaLayout
-         #,ui.Button({'ID':'btTeste','Text':'Teste'})
-         ]
-        
-    )
+    ])
     
     vLayoutSettings =  ui.HGroup({'Weight': 0.0},[
             ui.VGroup({'Weight': 2.0},[
@@ -2595,7 +2661,8 @@ def MainWindow():
     vLayoutMainWindow = ui.VGroup({'Weight': 0.0},[
         ui.TabBar({'Weight':0.0,'ID':'MyTabs'}),
         ui.Stack({'Weight':1.0,'ID':'MyStack'},[
-            vLayoutGeneral,
+            vLayoutOperation,
+            vLayoutProfiles,
             vLayoutSettings            
         ])
     ])
@@ -2621,6 +2688,7 @@ def MainWindow():
     win.On.btConformAll.Clicked = BtConformAll
     win.On.btImportAAF.Clicked = BtImportAAF
     win.On.cbProjects.CurrentIndexChanged = ProjectChanged
+    win.On.cbProjectsOperation.CurrentIndexChanged = ProjectChanged
     win.On.btDeleteProject.Clicked = DeleteProject
     win.On.btAddProject.Clicked = AddProject
     win.On.btRenameProject.Clicked = RenameProject
