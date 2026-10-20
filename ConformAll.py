@@ -56,7 +56,7 @@ class MyMpClip():
     def setTimelineClip(self,clip):
         self._timelineClip = clip
     
-    def GetClipProperty(self,key:str=None):
+    def GetClipProperty(self,key:str=""):
         '''
             Encapsulation of the API GetClipProperty method.
         '''
@@ -68,7 +68,7 @@ class MyMpClip():
         else:
             return self._mpClip.GetClipProperty(key)
         
-    def SetClipProperty(self,key:str,value:any):
+    def SetClipProperty(self,key:str,value):
         '''
             Encapsulation of the API SetClipProperty method.
         '''
@@ -112,13 +112,17 @@ class MyMpClip():
         try:
             if mpClips:
                 for mpClip in mpClips:
-                    if mpClip and mpClip.GetClipProperty("File Path") == filename:
+                    if mpClip and mpClip.GetClipProperty()["File Path"] == filename:
                         mpClips = [mpClip]
                         clipFound = True
                         print_info("Clip",mpClip.GetName(),"already exists in the media folder.")
                         break
             if not clipFound:
-                mpClips = mediaPool.ImportMedia([filename])
+                if IS_VERSION_MINOR_21:
+                    mpClips = mediaPool.ImportMedia([filename])
+                else:
+                    mpClips = mediaPool.ImportMedia([{"FilePath":filename}])
+                    
             if len(mpClips) > 0 and mpClips[0]:
                 self._mpClip = mpClips[0]
                 if self._timelineClip:
@@ -166,18 +170,20 @@ def print_warning(*args,sep: str = " ", end: str = "\n"):
     print(*args,sep=sep,end=end)
     
 def print_info(*args,sep: str = " ", end: str = "\n"):
+
     print('INFO:','',end='')
     print(*args,sep=sep,end=end)
 
 #resolve = dvr.scriptapp("Resolve")
 print_info("Python version:",sys.version)
 #print("Python Path:",sys.path)
-CONFORM_ALL_VERSION="2025.3.0"
+CONFORM_ALL_VERSION="2026.10.0"
 RESOLVE_VERSION=resolve.GetVersion()
+IS_VERSION_MINOR_21 = RESOLVE_VERSION[0] < 21 
 RESOLVE_VERSION_STRING=resolve.GetVersionString()
 RESOLVE_VERSION_SUFIX=RESOLVE_VERSION_STRING.replace('.','_')
 STOCK_DRB="stock_" + RESOLVE_VERSION_SUFIX + ".drb"
-BLACKLIST_FILES="blacklist_files_" + RESOLVE_VERSION_SUFIX + ".json"
+BLACKLIST_FILES=f"blacklist_files_{RESOLVE_VERSION_SUFIX}.json"
 print_info("ConformAll version:",CONFORM_ALL_VERSION)
 print_info("DaVinci Resolve Version:",RESOLVE_VERSION_STRING)
 userPath = os.path.expanduser("~")
@@ -389,6 +395,7 @@ def getAvidMXFFolder():
             return folder
         
     print_error("Avid folders list does not contains a Avid MediaFiles" + os.sep + "MXF folder.")
+    return ""
     
 def importIngestSettings(path:str,importToKey:str,importFromKey:str):
     '''
@@ -507,7 +514,13 @@ def getMediaFiles(foldersPaths:list, clipDict:dict, folderType:list):
                     if clip:
                         
                         if amaFiles.get(fileReel):
-                            mpClips = mediaPool.ImportMedia([amaFiles.get(fileReel),filename])
+                            if IS_VERSION_MINOR_21:
+                                mpClips = mediaPool.ImportMedia([amaFiles.get(fileReel),filename])
+                            else:
+                                mpClips = mediaPool.ImportMedia([
+                                    {"FilePath":amaFiles.get(fileReel)},
+                                    {"FilePath":filename}])
+                                
                             if isMpClipHighRes(mpClips[0]) and not isMpClipHighRes(mpClips[1]):
                                 replace = False
                             mediaPool.DeleteClips(mpClips)
@@ -678,7 +691,7 @@ def importClips(files:list):
     ts = time.time()
     for clip in stock.GetClipList():
         if clip:
-            currentClipsFileNames.append(clip.GetClipProperty("File Name"))
+            currentClipsFileNames.append(clip.GetClipProperty()["File Name"])
         now = time.time()
         if ts + 1. < now:
             print("",end=".")
@@ -726,8 +739,12 @@ def importClips(files:list):
            r_pointer = clips2ImportCounter 
         print_info("Importing from index ",l_pointer," to index ",r_pointer-1,".\t",clips2ImportCounter - l_pointer," files remaining...",sep="")
         bmd.wait(0.2)
-        importedClips += mediaPool.ImportMedia(files2Process[l_pointer:r_pointer])
-
+        if IS_VERSION_MINOR_21:
+            importedClips += mediaPool.ImportMedia(files2Process[l_pointer:r_pointer])
+        else:
+            importDicts = [{"FilePath":f} for f in files2Process[l_pointer:r_pointer]]
+            importedClips += mediaPool.ImportMedia(importDicts)
+            
     mediaPool.RefreshFolders()
     print_info("Creating blacklist...")
     blacklist = createBlackListFiles(importedClips,files2Process,blacklist)
@@ -777,7 +794,7 @@ def createBlackListFiles(importedClips:list,files2Process:list,blacklist_par:lis
     # remove processed files from localFiles2Process
     # remaining files are the import errors
     for clip in importedClips:
-        clipFilename = clip.GetClipProperty("File Path")
+        clipFilename = clip.GetClipProperty()["File Path"]
         if clipFilename in localFiles2Process:
             localFiles2Process.remove(clipFilename)
             
@@ -894,7 +911,7 @@ def getMpClipsFromTimeline(resolution:str = 'all'):
     for clip in timelineClips:
         mpClip = clip[0].GetMediaPoolItem()
         if mpClip:
-            codec = mpClip.GetClipProperty("Video Codec")
+            codec = mpClip.GetClipProperty()["Video Codec"]
             if len(currentList) > 0 and codec.upper() in currentList:
                 clips.append(mpClip)
             
@@ -923,17 +940,17 @@ def getTimelineClipsMog(clipsList, timeline_names_reels):
         track = clip_tuple[1]
         mpClip = clip.GetMediaPoolItem()
         if mpClip:
-            if len(mpClip.GetClipProperty("Clip Color")) == 0:
+            if len(mpClip.GetClipProperty()["Clip Color"]) == 0:
                 # Try to extract the reel name from the clipname
                 clipName = mpClip.GetName()
                 clipReel = extractReelName(clipName,fieldSep,fieldCount)
-                #clipReel = mpClip.GetClipProperty("Reel Name")
+                #clipReel = mpClip.GetClipProperty()["Reel Name"]
                 if clipReel:
                     clipDict[clipReel] = (mpClip,'MOG',clip)
                     numClips+=1
                 else:
                     # Try to get the reel name insted 
-                    clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+                    clipReel = extractReelName(mpClip.GetClipProperty()["Reel Name"],fieldSep,fieldCount)
                     if clipReel:
                         clipDict[clipReel] = (mpClip,'MOG',clip)
                         numClips+=1
@@ -943,7 +960,7 @@ def getTimelineClipsMog(clipsList, timeline_names_reels):
             mpClip = timeline_names_reels.get((track,tcIn),False)
             if mpClip:
                 mpClip.setTimelineClip(clip)
-                clipReel = extractReelName(mpClip.GetClipProperty("Reel Name"),fieldSep,fieldCount)
+                clipReel = extractReelName(mpClip.GetClipProperty()["Reel Name"],fieldSep,fieldCount)
                 if clipReel:
                     print_info("Adding reel name from edit index:",clipReel)
                     clipDict[clipReel] = (mpClip,'MOG',clip)
@@ -978,11 +995,11 @@ def getTimelineClipsOthers(clipsList,clipType,timeline_names_reels):
         track = clip_tuple[1]
         mpClip = clip.GetMediaPoolItem()
         if mpClip:
-            if len(mpClip.GetClipProperty("Clip Color")) == 0:
+            if len(mpClip.GetClipProperty()["Clip Color"]) == 0:
 
-                clipReel = mpClip.GetClipProperty("Reel Name")
+                clipReel = mpClip.GetClipProperty()["Reel Name"]
                 if not clipReel:
-                    clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+                    clipReel = extractReelName(mpClip.GetClipProperty()["File Name"])
 
                 if clipReel:
                     # remove extension from the reel name, if exists
@@ -997,9 +1014,9 @@ def getTimelineClipsOthers(clipsList,clipType,timeline_names_reels):
             mpClip = timeline_names_reels.get((track,tcIn),False)
             if mpClip:
                 mpClip.setTimelineClip(clip)
-                clipReel = mpClip.GetClipProperty("Reel Name")
+                clipReel = mpClip.GetClipProperty()["Reel Name"]
                 if not clipReel:
-                    clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+                    clipReel = extractReelName(mpClip.GetClipProperty()["File Name"])
                 if clipReel:
                     print_info("Adding reel name from edit index:",clipReel)
                     clipDict[clipReel] = (mpClip,clipType,clip)
@@ -1028,7 +1045,7 @@ def getMpClipFromReelName(reelName:str,stockClipList:list):
             A API MediaPoolItem object.
     '''
     for mpClip in stockClipList:
-        if mpClip.GetClipProperty("Reel Name") == reelName:
+        if mpClip.GetClipProperty()["Reel Name"] == reelName:
             return mpClip
         
  
@@ -1095,11 +1112,12 @@ def getTimelineCodecs():
 
         mpClip = clip[0].GetMediaPoolItem()
         if mpClip:
-            codec = mpClip.GetClipProperty("Video Codec")
+            codec = mpClip.GetClipProperty()["Video Codec"]
             if codec not in codecs:
                 codecs.append(codec)
             
     return codecs
+
 
 def replaceClips(timelineClips:dict,files:dict):
     '''
@@ -1124,55 +1142,61 @@ def replaceClips(timelineClips:dict,files:dict):
     counter = 0
     clips2Move=[]
     clipType = None
-    for key in timelineClips.keys():
-        c = timelineClips.get(key)
-        mpClip = c[0]
-        clipType = c[1]
-        timelineClip=c[2]
+    for key,value in timelineClips.items():
+        mpClip = value[0]
+        clipType = value[1]
+        timelineClip=value[2]
         timelineClipName = timelineClip.GetName()
-        proxyClipFileName=mpClip.GetClipProperty("File Name") 
-        proxyClipPath=mpClip.GetClipProperty("File Path")
-        proxyCodec=mpClip.GetClipProperty("Video Codec")
-
         clipName = mpClip.GetName()
+        clipProperties = mpClip.GetClipProperty()
+        #proxyClipFileName=clipProperties["File Name"] 
+        proxyClipPath=clipProperties["File Path"]
+        proxyCodec=clipProperties["Video Codec"]
+
         file = files.get(key)
         #print(file)
         if file:
-            oldStartTc = mpClip.GetClipProperty("Start TC")
+            oldStartTc = clipProperties["Start TC"]
             oldStartTCSplit = oldStartTc.split(":")
             if oldStartTCSplit[0] == "24":
                 mpClip.SetClipProperty("Start TC","00:" + oldStartTCSplit[1] + ":" + oldStartTCSplit[2] + ":" + oldStartTCSplit[3])
-                oldEndTC = mpClip.GetClipProperty("End TC")
+                oldEndTC = clipProperties["End TC"]
                 oldEndTCSplit = oldEndTC.split(":")
                 oldEndHour = int(oldEndTCSplit[0])
                 newEndHour = oldEndHour - 24
                 mpClip.SetClipProperty("End TC",str(newEndHour) + ":" + oldEndTCSplit[1]  + ":" + oldEndTCSplit[2] + ":" + oldEndTCSplit[3])
-                print_info("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty("Start TC"),"->",mpClip.GetClipProperty("End TC"))
-    
+                print_info("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty()["Start TC"],"->",mpClip.GetClipProperty()["End TC"])
+
+            wait = 0.1
             if mpClip.ReplaceClip(file):
-                bmd.wait(0.1)
-                if proxyCodec == mpClip.GetClipProperty("Video Codec") and not isinstance(mpClip,MyMpClip):
+                bmd.wait(wait)
+                if proxyCodec == mpClip.GetClipProperty()["Video Codec"] and not isinstance(mpClip,MyMpClip):
                     print_warning("New and old files have de same codec.")
                     mpClip.ReplaceClip(proxyClipPath)
-                    bmd.wait(0.1)
+                    bmd.wait(wait)
                     mpClip.SetClipProperty("Scene",timelineClipName)
                     mpClip.SetClipColor(typeColor["SAME"])
                     continue    
                 
                 counter+=1
-                mpClip.LinkProxyMedia(proxyClipPath)
+                #mpClip.LinkProxyMedia(proxyClipPath)
                 mpClip.SetClipColor(typeColor[clipType])
                 mpClip.SetClipProperty("Scene",timelineClipName) 
                 #mpClip.SetClipProperty("Reel",key) 
 
-                clips2Move.append(mpClip)
+                clips2Move.append((mpClip,proxyClipPath))
                 
                 print_info("Clip",clipName,"replaced")
+                
             else:
                 print_error("Error replacing",clipName,"with",file)
     
-    
-    mediaPool.MoveClips(clips2Move,binFolder)
+    #  Descomentar quando o problema do relink de proxies estiver resolvido pela BMD
+    #for c in clips2Move:
+    #    print_info(f"Linking proxy {c[1]}")
+    #    c[0].LinkProxyMedia(c[1])
+        
+    mediaPool.MoveClips([c[0] for c in clips2Move],binFolder)
     mediaPool.SetCurrentFolder(currentFolder)
     print_info(str(counter)," clips conformed.")
         
@@ -1209,8 +1233,17 @@ def insertReferences():
     
     if audioFile:
         print_info("Inserting reference audio...")
-        audioClip = mediaPool.ImportMedia([audioFile])[0]
-        appendedClips = mediaPool.AppendToTimeline(audioClip)
+        appendedClips = []
+        if IS_VERSION_MINOR_21:
+            response = mediaPool.ImportMedia([audioFile])[0]
+        else:
+            print_info(audioFile)
+            response = mediaPool.ImportMedia([{"FilePath":audioFile}])
+        if response:
+            audioClip = response[0]
+
+        if response:
+            appendedClips = mediaPool.AppendToTimeline(audioClip)
         if len(appendedClips) == 0:
             print_error("Failed to add reference audio!")
         else:
@@ -1222,12 +1255,16 @@ def insertReferences():
         print_info("Inserting reference video...")
         if currentTimeline.AddTrack('video'):
             trackCount = currentTimeline.GetTrackCount('video')
-            videoClip = mediaPool.ImportMedia([videoFile])[0]
+            if IS_VERSION_MINOR_21:
+                videoClip = mediaPool.ImportMedia([videoFile])[0]
+            else:
+                videoClip = mediaPool.ImportMedia([{"FilePath":videoFile}])[0]
+                
             if videoClip:
                 clipDic = {
                     "mediaPoolItem":videoClip,
                     "startFrame":0,
-                    "endFrame":videoClip.GetClipProperty("End"),
+                    "endFrame":videoClip.GetClipProperty()["End"],
                     "mediaType":1,
                     "trackIndex":trackCount,
                     "recordFrame":currentTimeline.GetStartFrame()
@@ -1339,7 +1376,7 @@ def isMpClipHighRes(clip):
             True if the clip is high resolution or False if is proxy.
     '''
     
-    codec = clip.GetClipProperty("Video Codec")
+    codec = clip.GetClipProperty()["Video Codec"]
     return codec in settingsJson.get('codecs',[])
     
     
@@ -1431,7 +1468,7 @@ def isReelNameSelected(clipDict):
         return True
     
     for v in clipDict.values():
-        if v[0].GetClipProperty("Reel Name"):
+        if v[0].GetClipProperty()["Reel Name"]:
             return True    
     
     ret,_,_ = genericPopupDialog("No Reel Names Found.\n" \
@@ -1810,15 +1847,15 @@ def BtImportAAF(ev):
                     tcIn = clip.GetStart()
                     mpClip = timeline_names_reels.get((track,tcIn),False)
                     if mpClip:
-                        startFrame = mpClip.GetClipProperty("Start TC")
+                        startFrame = mpClip.GetClipProperty()["Start TC"]
                         if startFrame == "24:00:00:00":
                             #print(startFrame)
                             mpClip.setTimelineClip(clip)
-                            clipReel = mpClip.GetClipProperty("Reel Name")
+                            clipReel = mpClip.GetClipProperty()["Reel Name"]
                             #print("mClip")
                             if not clipReel:
                                 #print("extractReelName")
-                                clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+                                clipReel = extractReelName(mpClip.GetClipProperty()["File Name"])
                             if clipReel:
                                 #print("getMpClipFromReelName")
                                 print_info("Edit Index clip",clipReel,"have",startFrame,"Start TC. Getting the media pool clip...")
@@ -1829,12 +1866,12 @@ def BtImportAAF(ev):
                                 if mpClip:
                                     #print("checking TC")
                                     mpClip.SetClipProperty("Start TC","24:00:00:00")
-                                    oldEndTC = mpClip.GetClipProperty("End TC")
+                                    oldEndTC = mpClip.GetClipProperty()["End TC"]
                                     oldEndTCSplit = oldEndTC.split(":")
                                     oldEndHour = int(oldEndTCSplit[0])
                                     newEndHour = oldEndHour + 24
                                     mpClip.SetClipProperty("End TC",str(newEndHour) + ":" + oldEndTCSplit[1]  + ":" + oldEndTCSplit[2] + ":" + oldEndTCSplit[3])
-                                    print_info("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty("Start TC"),"->",mpClip.GetClipProperty("End TC"))
+                                    print_info("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty()["Start TC"],"->",mpClip.GetClipProperty()["End TC"])
     
                  
         else:
@@ -1987,10 +2024,10 @@ def OnDeleteMedia(ev):
     deleteUnrelinked = False
     deleteUnrelinkedAsked = False
     for clip in mpClips:
-        filePath = clip.GetClipProperty('File Path')
+        filePath = clip.GetClipProperty()['File Path']
         if filePath.startswith(copyMediaPath):
             if os.path.exists(filePath):
-                proxy = clip.GetClipProperty("Proxy Media Path")
+                proxy = clip.GetClipProperty()["Proxy Media Path"]
                 if clip.ReplaceClip(proxy):
                     clip.UnlinkProxyMedia()
                     clip.SetClipColor("Blue")
@@ -2248,35 +2285,35 @@ def OnTeste(ev):
             mpClip = timeline_names_reels.get((track,tcIn),False)
             if mpClip:
                 mpClip.setTimelineClip(clip)
-                clipReel = mpClip.GetClipProperty("Reel Name")
+                clipReel = mpClip.GetClipProperty()["Reel Name"]
                 if not clipReel:
-                    clipReel = extractReelName(mpClip.GetClipProperty("File Name"))
+                    clipReel = extractReelName(mpClip.GetClipProperty()["File Name"])
                 if clipReel:
                     mpClip = getMpClipFromReelName(clipReel)
                     if mpClip:
-                        oldStartTC = mpClip.GetClipProperty("Start TC")
+                        oldStartTC = mpClip.GetClipProperty()["Start TC"]
                         if oldStartTC == "00:00:00:00":
                             mpClip.SetClipProperty("Start TC","24:00:00:00")
-                            oldEndTC = mpClip.GetClipProperty("End TC")
+                            oldEndTC = mpClip.GetClipProperty()["End TC"]
                             oldEndTCSplit = oldEndTC.split(":")
                             oldEndHour = int(oldEndTCSplit[0])
                             newEndHour = oldEndHour + 24
                             mpClip.SetClipProperty("End TC",str(newEndHour) + ":" + oldEndTCSplit[1]  + ":" + oldEndTCSplit[2] + ":" + oldEndTCSplit[3])
-                            print("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty("Start TC"),"->",mpClip.GetClipProperty("End TC"))
+                            print("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty()["Start TC"],"->",mpClip.GetClipProperty()["End TC"])
                                           
     
     #currentFolder = mediaPool.GetCurrentFolder()
     #stock = getMediaFolder("stock")
     #for mpClip in stock.GetClipList():
-    #    oldStartTC = mpClip.GetClipProperty("Start TC")
+    #    oldStartTC = mpClip.GetClipProperty()["Start TC"]
     #    if oldStartTC == "00:00:00:00":
     #        mpClip.SetClipProperty("Start TC","24:00:00:00")
-    #        oldEndTC = mpClip.GetClipProperty("End TC")
+    #        oldEndTC = mpClip.GetClipProperty()["End TC"]
     #        oldEndTCSplit = oldEndTC.split(":")
     #        oldEndHour = int(oldEndTCSplit[0])
     #        newEndHour = oldEndHour + 24
     #        mpClip.SetClipProperty("End TC",str(newEndHour) + ":" + oldEndTCSplit[1]  + ":" + oldEndTCSplit[2] + ":" + oldEndTCSplit[3])
-    #        print("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty("Start TC"),"->",mpClip.GetClipProperty("End TC"))
+    #        print("TC for",mpClip.GetName(),"is now",mpClip.GetClipProperty()["Start TC"],"->",mpClip.GetClipProperty()["End TC"])
     #    else:
     #        continue
         
