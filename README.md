@@ -86,7 +86,18 @@ The settings file is created by the ConformAll.py script.
 
 # Versions
 
-## 2026.1.0
+Since version 2026.10.0 the the versions are numbered like:  
+YYYY.MM.nn
+
+- `YYYY` is the year;
+- `MM`is the month;
+- `nn`is the version number for that year.
+
+## 2026.10.1
+
+- The `ImportMedia([{ClipInfo}])` convention it's not working (returns `None`). Returned to the `ImportMedia([filepath])` convention.
+
+## 2026.10.0
 
 - Update to comply with the DaVinci Resolve 21.1. This version may not work with pre 21.1. Use `ConformAll_pre_dvr_21.py` with with pre 21.1 if the current version does not work.
 - BMD `LinkProxyMedia` function it's making the DVR to crash. This functions was disabled in this version. Because of that, it's not possible to relink back to the proxy media when deleting the high res.
